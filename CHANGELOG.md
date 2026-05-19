@@ -2,6 +2,13 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.2.4] - 2026-05-19
+
+### Changed
+
+- 将底部固钉按钮功能从靠边收起调整为切换窗口置顶。
+- 固钉按钮新增置顶激活态，便于识别当前窗口置顶状态。
+
 ## [0.2.3] - 2026-05-19
 
 ### Changed

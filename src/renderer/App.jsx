@@ -494,10 +494,11 @@ export function App() {
             {config.privacyMode ? <EyeOff size={17} /> : <Eye size={17} />}
           </button>
           <button
-            className="icon-button"
+            className={`icon-button ${config.alwaysOnTop ? "is-active" : ""}`}
             type="button"
-            onClick={() => window.wageApp?.collapseWindow(config.edgeCollapsePosition?.edge || "right")}
-            aria-label="收起到屏幕边缘"
+            onClick={() => patchConfig({ alwaysOnTop: !config.alwaysOnTop })}
+            aria-label={config.alwaysOnTop ? "取消窗口置顶" : "窗口置顶"}
+            title={config.alwaysOnTop ? "取消置顶" : "窗口置顶"}
           >
             <Pin size={17} />
           </button>

@@ -332,6 +332,12 @@ button {
   border-color: color-mix(in srgb, var(--accent), var(--border) 45%);
 }
 
+.icon-button.is-active {
+  border-color: color-mix(in srgb, var(--accent), var(--border) 25%);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent), transparent 86%);
+}
+
 .settings-panel {
   position: absolute;
   inset: 14px;
