@@ -347,7 +347,7 @@ button {
   width: 100%;
   min-width: 0;
   height: 34px;
-  padding: 0 34px 0 10px;
+  padding: 0 30px 0 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
@@ -356,13 +356,16 @@ button {
 }
 
 .control-button {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   cursor: pointer;
 }
 
 .control-button svg {
+  position: absolute;
+  right: 10px;
   color: var(--soft);
   transition: transform 160ms ease;
 }
@@ -459,7 +462,6 @@ button {
 .time-trigger {
   justify-content: flex-start;
   gap: 3px;
-  padding-right: 9px;
   font-weight: 750;
   letter-spacing: 0;
 }
@@ -467,10 +469,6 @@ button {
 .time-trigger b {
   color: var(--soft);
   font-weight: 650;
-}
-
-.time-trigger svg {
-  margin-left: auto;
 }
 
 .time-menu {
@@ -504,13 +502,14 @@ button {
   max-height: 156px;
   gap: 3px;
   overflow-y: auto;
-  padding-right: 5px;
-  scrollbar-color: color-mix(in srgb, var(--accent), transparent 28%) transparent;
+  padding-right: 6px;
+  scrollbar-color: color-mix(in srgb, var(--accent), transparent 18%) transparent;
   scrollbar-width: thin;
 }
 
 .time-column div::-webkit-scrollbar {
-  width: 5px;
+  width: 3px;
+  height: 3px;
 }
 
 .time-column div::-webkit-scrollbar-track {
@@ -521,11 +520,21 @@ button {
 .time-column div::-webkit-scrollbar-thumb {
   min-height: 24px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--accent), transparent 34%);
+  background: color-mix(in srgb, var(--accent), transparent 18%);
+}
+
+.time-column div::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.time-column div::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .time-column div::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--accent), transparent 16%);
+  background: var(--accent);
 }
 
 .time-column button {

@@ -2,6 +2,13 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.1.5] - 2026-05-19
+
+### Fixed
+
+- 进一步优化时间选择器滚动条，隐藏原生滚动按钮并收窄为圆润细条。
+- 统一薪资模式、主题、时间选择控件的小箭头位置。
+
 ## [0.1.4] - 2026-05-19
 
 ### Changed
