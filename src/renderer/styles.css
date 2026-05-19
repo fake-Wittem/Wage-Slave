@@ -14,7 +14,7 @@
   --accent: #8ddcff;
   --accent-2: #c4a5ff;
   --progress-gradient: linear-gradient(90deg, #75e8ff 0%, #9ea7ff 52%, #e5a8ff 100%);
-  --handle-gradient: linear-gradient(180deg, #9fe9ff 0%, #c3a6ff 58%, #f4b7ff 100%);
+  --handle-color: #b7a7ff;
   --card-tint:
     radial-gradient(circle at 14% 0%, rgba(117, 232, 255, 0.16), transparent 46%),
     linear-gradient(135deg, rgba(142, 168, 255, 0.13), rgba(229, 168, 255, 0.09));
@@ -32,10 +32,10 @@
   --accent: #4c8dff;
   --accent-2: #c46bff;
   --progress-gradient: linear-gradient(90deg, #47b6ff 0%, #8b7cff 50%, #e07bff 100%);
-  --handle-gradient: linear-gradient(180deg, #5ecbff 0%, #9a7cff 56%, #ef8fff 100%);
+  --handle-color: #8b7cff;
   --card-tint:
-    radial-gradient(circle at 16% 0%, rgba(71, 182, 255, 0.16), transparent 48%),
-    linear-gradient(135deg, rgba(91, 141, 255, 0.12), rgba(224, 123, 255, 0.08));
+    radial-gradient(circle at 16% 0%, rgba(71, 182, 255, 0.08), transparent 50%),
+    linear-gradient(135deg, rgba(91, 141, 255, 0.06), rgba(224, 123, 255, 0.04));
   --shadow: rgba(60, 82, 101, 0.2);
 }
 
@@ -633,7 +633,7 @@ button {
   height: 100vh;
   place-items: center;
   border-radius: 999px;
-  background: var(--handle-gradient);
+  background: var(--handle-color);
   color: #10251f;
   cursor: pointer;
   box-shadow:

@@ -30,7 +30,7 @@ const defaultConfig = {
   edgeSnapThreshold: defaultSnapThreshold,
   edgeCollapseEnabled: true,
   edgeCollapseDelayMs: 800,
-  edgeCollapseHandleSize: 12,
+  edgeCollapseHandleSize: 8,
   edgeCollapsePosition: {
     displayId: "primary",
     edge: "right"
@@ -280,7 +280,7 @@ function collapseWindow(edge = config.edgeCollapsePosition?.edge || "right", for
   const bounds = mainWindow.getBounds();
   const display = screen.getDisplayMatching(bounds);
   const area = display.workArea;
-  const handle = Math.max(8, Math.min(24, Number(config.edgeCollapseHandleSize) || 12));
+  const handle = Math.max(6, Math.min(14, Number(config.edgeCollapseHandleSize) || 8));
 
   expandedBounds = {
     width: widgetSize.width,

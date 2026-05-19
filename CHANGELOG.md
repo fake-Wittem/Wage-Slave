@@ -2,6 +2,13 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.2.2] - 2026-05-19
+
+### Changed
+
+- 靠边收起提示条改为单一色并进一步收细，改善上下边缘收起时的观感。
+- 降低浅色主题天气卡片和本月数据卡片的背景 tint 强度。
+
 ## [0.2.1] - 2026-05-19
 
 ### Changed

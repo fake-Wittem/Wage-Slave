@@ -37,7 +37,7 @@ const fallbackConfig = {
   themeMode: "system",
   edgeCollapseEnabled: true,
   edgeCollapseDelayMs: 800,
-  edgeCollapseHandleSize: 12,
+  edgeCollapseHandleSize: 8,
   privacyMode: false
 };
 
