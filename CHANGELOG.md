@@ -2,6 +2,12 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.1.6] - 2026-05-19
+
+### Fixed
+
+- 时间选择器隐藏原生系统滚动条，改为自绘细圆角滚动条，避免 Windows 方块滚动条残留。
+
 ## [0.1.5] - 2026-05-19
 
 ### Fixed

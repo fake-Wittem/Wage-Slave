@@ -497,44 +497,45 @@ button {
   font-weight: 700;
 }
 
-.time-column div {
+.time-scroll-shell {
+  position: relative;
+}
+
+.time-scroll-list {
   display: grid;
   max-height: 156px;
   gap: 3px;
   overflow-y: auto;
-  padding-right: 6px;
-  scrollbar-color: color-mix(in srgb, var(--accent), transparent 18%) transparent;
-  scrollbar-width: thin;
+  padding-right: 9px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.time-column div::-webkit-scrollbar {
-  width: 3px;
-  height: 3px;
-}
-
-.time-column div::-webkit-scrollbar-track {
-  border-radius: 999px;
-  background: transparent;
-}
-
-.time-column div::-webkit-scrollbar-thumb {
-  min-height: 24px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent), transparent 18%);
-}
-
-.time-column div::-webkit-scrollbar-button {
+.time-scroll-list::-webkit-scrollbar {
+  display: none;
   width: 0;
   height: 0;
-  display: none;
 }
 
-.time-column div::-webkit-scrollbar-corner {
-  background: transparent;
+.time-scrollbar {
+  position: absolute;
+  top: 0;
+  right: 1px;
+  bottom: 0;
+  width: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted), transparent 88%);
+  pointer-events: none;
 }
 
-.time-column div::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
+.time-scrollbar i {
+  display: block;
+  width: 100%;
+  min-height: 24px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent), transparent 16%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent), transparent 70%);
+  transition: background 160ms ease;
 }
 
 .time-column button {

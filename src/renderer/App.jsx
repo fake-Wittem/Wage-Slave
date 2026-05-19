@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarDays,
   Check,
@@ -115,9 +115,40 @@ function CustomSelect({ value, options, onChange, ariaLabel }) {
 
 function TimePicker({ value, onChange, ariaLabel }) {
   const [open, setOpen] = useState(false);
+  const hourListRef = useRef(null);
+  const minuteListRef = useRef(null);
+  const [scrollbars, setScrollbars] = useState({
+    hour: { top: 0, height: 32 },
+    minute: { top: 0, height: 32 }
+  });
   const [hour = "00", minute = "00"] = String(value || "00:00").split(":");
   const hours = Array.from({ length: 24 }, (_, index) => `${index}`.padStart(2, "0"));
   const minutes = Array.from({ length: 12 }, (_, index) => `${index * 5}`.padStart(2, "0"));
+
+  function updateScrollbar(type, element) {
+    if (!element) {
+      return;
+    }
+
+    const maxScroll = Math.max(1, element.scrollHeight - element.clientHeight);
+    const height = Math.max(26, (element.clientHeight / element.scrollHeight) * element.clientHeight);
+    const top = (element.scrollTop / maxScroll) * (element.clientHeight - height);
+    setScrollbars((current) => ({
+      ...current,
+      [type]: { top, height }
+    }));
+  }
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      updateScrollbar("hour", hourListRef.current);
+      updateScrollbar("minute", minuteListRef.current);
+    });
+  }, [open]);
 
   function updateTime(nextHour, nextMinute) {
     onChange(`${nextHour}:${nextMinute}`);
@@ -142,37 +173,55 @@ function TimePicker({ value, onChange, ariaLabel }) {
         <div className="time-menu" role="dialog" aria-label={ariaLabel}>
           <div className="time-column">
             <strong>时</strong>
-            <div>
-              {hours.map((item) => (
-                <button
-                  className={item === hour ? "is-selected" : ""}
-                  type="button"
-                  key={item}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => updateTime(item, minute)}
-                >
-                  {item}
-                </button>
-              ))}
+            <div className="time-scroll-shell">
+              <div
+                className="time-scroll-list"
+                ref={hourListRef}
+                onScroll={(event) => updateScrollbar("hour", event.currentTarget)}
+              >
+                {hours.map((item) => (
+                  <button
+                    className={item === hour ? "is-selected" : ""}
+                    type="button"
+                    key={item}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => updateTime(item, minute)}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+              <span className="time-scrollbar" aria-hidden="true">
+                <i style={{ height: scrollbars.hour.height, transform: `translateY(${scrollbars.hour.top}px)` }} />
+              </span>
             </div>
           </div>
           <div className="time-column">
             <strong>分</strong>
-            <div>
-              {minutes.map((item) => (
-                <button
-                  className={item === minute ? "is-selected" : ""}
-                  type="button"
-                  key={item}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => {
-                    updateTime(hour, item);
-                    setOpen(false);
-                  }}
-                >
-                  {item}
-                </button>
-              ))}
+            <div className="time-scroll-shell">
+              <div
+                className="time-scroll-list"
+                ref={minuteListRef}
+                onScroll={(event) => updateScrollbar("minute", event.currentTarget)}
+              >
+                {minutes.map((item) => (
+                  <button
+                    className={item === minute ? "is-selected" : ""}
+                    type="button"
+                    key={item}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => {
+                      updateTime(hour, item);
+                      setOpen(false);
+                    }}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+              <span className="time-scrollbar" aria-hidden="true">
+                <i style={{ height: scrollbars.minute.height, transform: `translateY(${scrollbars.minute.top}px)` }} />
+              </span>
             </div>
           </div>
         </div>
