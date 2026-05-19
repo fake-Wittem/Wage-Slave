@@ -2,6 +2,13 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.1.4] - 2026-05-19
+
+### Changed
+
+- 优化日薪 / 月薪数字输入框样式，移除原生计数器。
+- 优化时间选择器滚动条样式，改为更细、更圆润的控件内滚动条。
+
 ## [0.1.3] - 2026-05-19
 
 ### Changed
