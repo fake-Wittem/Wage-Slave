@@ -27,7 +27,6 @@ const defaultConfig = {
   clickThrough: false,
   opacity: 0.94,
   themeMode: "system",
-  edgeSnapEnabled: true,
   edgeSnapThreshold: defaultSnapThreshold,
   edgeCollapseEnabled: true,
   edgeCollapseDelayMs: 800,
@@ -127,7 +126,7 @@ function createWindow() {
       return;
     }
 
-    if (!config.edgeSnapEnabled && !config.edgeCollapseEnabled) {
+    if (!config.edgeCollapseEnabled) {
       return;
     }
 
@@ -205,7 +204,7 @@ function setWindowBounds(bounds) {
 }
 
 function snapWindowIfNearEdge() {
-  if (!mainWindow || collapsed || config.lockPosition || !config.edgeSnapEnabled) {
+  if (!mainWindow || collapsed || config.lockPosition || !config.edgeCollapseEnabled) {
     return false;
   }
 
