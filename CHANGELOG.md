@@ -2,6 +2,13 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.1.9] - 2026-05-19
+
+### Changed
+
+- 优化本月数据模块布局，将标题移动到图标同一行并压缩卡片高度。
+- 为本月数据卡片增加淡色主题背景，减少浅色模式下的单调感。
+
 ## [0.1.8] - 2026-05-19
 
 ### Changed

@@ -462,13 +462,17 @@ export function App() {
 
       <section className="stat-grid">
         <article>
-          <CalendarDays size={17} />
-          <span>本月已赚</span>
+          <div className="stat-title">
+            <CalendarDays size={16} />
+            <span>本月已赚</span>
+          </div>
           <strong>{formatMoney(wage.monthEarned, config.privacyMode)}</strong>
         </article>
         <article>
-          <ChevronRight size={17} />
-          <span>本月已过</span>
+          <div className="stat-title">
+            <ChevronRight size={16} />
+            <span>本月已过</span>
+          </div>
           <strong>{wage.monthDayLabel}</strong>
         </article>
       </section>

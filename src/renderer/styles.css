@@ -235,23 +235,34 @@ button {
 }
 
 .stat-grid article {
-  display: grid;
-  grid-template-rows: auto auto auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   min-width: 0;
-  min-height: 72px;
-  padding: 10px 12px;
+  min-height: 62px;
+  padding: 9px 12px 10px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--surface);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent), transparent 92%), color-mix(in srgb, var(--accent-2), transparent 94%)),
+    var(--surface);
 }
 
-.stat-grid svg {
+.stat-title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 5px;
+}
+
+.stat-title svg {
+  flex: 0 0 auto;
   color: var(--accent);
 }
 
 .stat-grid strong {
   display: block;
-  margin-top: 6px;
+  margin-top: 7px;
   overflow: hidden;
   color: var(--text);
   font-size: 17px;
