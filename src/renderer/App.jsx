@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
+  Check,
+  ChevronDown,
   ChevronRight,
   CloudSun,
   Eye,
@@ -62,10 +64,120 @@ function themeLabel(mode) {
 
 function Field({ label, children }) {
   return (
-    <label className="field">
+    <div className="field">
       <span>{label}</span>
       {children}
-    </label>
+    </div>
+  );
+}
+
+function CustomSelect({ value, options, onChange, ariaLabel }) {
+  const [open, setOpen] = useState(false);
+  const selected = options.find((option) => option.value === value) || options[0];
+
+  return (
+    <div className="custom-select" onBlur={() => setOpen(false)}>
+      <button
+        className={`control-button ${open ? "is-open" : ""}`}
+        type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((next) => !next)}
+      >
+        <span>{selected.label}</span>
+        <ChevronDown size={15} />
+      </button>
+      {open ? (
+        <div className="select-menu" role="listbox">
+          {options.map((option) => (
+            <button
+              className={`select-option ${option.value === value ? "is-selected" : ""}`}
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              key={option.value}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+            >
+              <span>{option.label}</span>
+              {option.value === value ? <Check size={14} /> : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function TimePicker({ value, onChange, ariaLabel }) {
+  const [open, setOpen] = useState(false);
+  const [hour = "00", minute = "00"] = String(value || "00:00").split(":");
+  const hours = Array.from({ length: 24 }, (_, index) => `${index}`.padStart(2, "0"));
+  const minutes = Array.from({ length: 12 }, (_, index) => `${index * 5}`.padStart(2, "0"));
+
+  function updateTime(nextHour, nextMinute) {
+    onChange(`${nextHour}:${nextMinute}`);
+  }
+
+  return (
+    <div className="time-picker" onBlur={() => setOpen(false)}>
+      <button
+        className={`control-button time-trigger ${open ? "is-open" : ""}`}
+        type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen((next) => !next)}
+      >
+        <span>{hour}</span>
+        <b>:</b>
+        <span>{minute}</span>
+        <ChevronDown size={15} />
+      </button>
+      {open ? (
+        <div className="time-menu" role="dialog" aria-label={ariaLabel}>
+          <div className="time-column">
+            <strong>时</strong>
+            <div>
+              {hours.map((item) => (
+                <button
+                  className={item === hour ? "is-selected" : ""}
+                  type="button"
+                  key={item}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => updateTime(item, minute)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="time-column">
+            <strong>分</strong>
+            <div>
+              {minutes.map((item) => (
+                <button
+                  className={item === minute ? "is-selected" : ""}
+                  type="button"
+                  key={item}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => {
+                    updateTime(hour, item);
+                    setOpen(false);
+                  }}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -97,13 +209,15 @@ function SettingsPanel({ config, version, onClose, onPatch }) {
 
       <div className="settings-grid">
         <Field label="薪资模式">
-          <select
+          <CustomSelect
             value={config.salaryMode}
-            onChange={(event) => onPatch({ salaryMode: event.target.value })}
-          >
-            <option value="monthly">月薪</option>
-            <option value="daily">日薪</option>
-          </select>
+            ariaLabel="选择薪资模式"
+            options={[
+              { value: "monthly", label: "月薪" },
+              { value: "daily", label: "日薪" }
+            ]}
+            onChange={(value) => onPatch({ salaryMode: value })}
+          />
         </Field>
 
         {config.salaryMode === "monthly" ? (
@@ -127,46 +241,48 @@ function SettingsPanel({ config, version, onClose, onPatch }) {
         )}
 
         <Field label="上班">
-          <input
-            type="time"
+          <TimePicker
             value={config.workStart}
-            onChange={(event) => onPatch({ workStart: event.target.value })}
+            ariaLabel="选择上班时间"
+            onChange={(value) => onPatch({ workStart: value })}
           />
         </Field>
 
         <Field label="下班">
-          <input
-            type="time"
+          <TimePicker
             value={config.workEnd}
-            onChange={(event) => onPatch({ workEnd: event.target.value })}
+            ariaLabel="选择下班时间"
+            onChange={(value) => onPatch({ workEnd: value })}
           />
         </Field>
 
         <Field label="午休开始">
-          <input
-            type="time"
+          <TimePicker
             value={config.breakStart}
-            onChange={(event) => onPatch({ breakStart: event.target.value })}
+            ariaLabel="选择午休开始时间"
+            onChange={(value) => onPatch({ breakStart: value })}
           />
         </Field>
 
         <Field label="午休结束">
-          <input
-            type="time"
+          <TimePicker
             value={config.breakEnd}
-            onChange={(event) => onPatch({ breakEnd: event.target.value })}
+            ariaLabel="选择午休结束时间"
+            onChange={(value) => onPatch({ breakEnd: value })}
           />
         </Field>
 
         <Field label="主题">
-          <select
+          <CustomSelect
             value={config.themeMode}
-            onChange={(event) => onPatch({ themeMode: event.target.value })}
-          >
-            <option value="system">跟随系统</option>
-            <option value="dark">深色</option>
-            <option value="light">浅色</option>
-          </select>
+            ariaLabel="选择主题模式"
+            options={[
+              { value: "system", label: "跟随系统" },
+              { value: "dark", label: "深色" },
+              { value: "light", label: "浅色" }
+            ]}
+            onChange={(value) => onPatch({ themeMode: value })}
+          />
         </Field>
 
         <Field label="透明度">

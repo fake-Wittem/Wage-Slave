@@ -2,6 +2,13 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.1.3] - 2026-05-19
+
+### Changed
+
+- 将设置面板中的薪资模式和主题模式改为自绘下拉控件，避免 Windows 原生下拉样式割裂。
+- 将工作时间和午休时间改为自绘双列时间选择器，统一深浅主题、圆角、悬停态和选中态。
+
 ## [0.1.2] - 2026-05-19
 
 ### Changed
