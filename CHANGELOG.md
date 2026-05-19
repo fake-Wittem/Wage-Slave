@@ -2,6 +2,13 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.1.2] - 2026-05-19
+
+### Changed
+
+- 主题切换选项文案调整为 `跟随系统`、`深色`、`浅色`。
+- 优化设置面板下拉框样式，增加自定义箭头、悬停态和聚焦态。
+
 ## [0.1.1] - 2026-05-19
 
 ### Fixed

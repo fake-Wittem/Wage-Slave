@@ -49,6 +49,17 @@ function ThemeIcon({ mode }) {
   return <Monitor size={15} />;
 }
 
+function themeLabel(mode) {
+  if (mode === "dark") {
+    return "深色";
+  }
+  if (mode === "light") {
+    return "浅色";
+  }
+
+  return "跟随系统";
+}
+
 function Field({ label, children }) {
   return (
     <label className="field">
@@ -153,8 +164,8 @@ function SettingsPanel({ config, version, onClose, onPatch }) {
             onChange={(event) => onPatch({ themeMode: event.target.value })}
           >
             <option value="system">跟随系统</option>
-            <option value="dark">黑暗</option>
-            <option value="light">明亮</option>
+            <option value="dark">深色</option>
+            <option value="light">浅色</option>
           </select>
         </Field>
 
@@ -298,7 +309,7 @@ export function App() {
         <div>
           <span className="live-dot" />
           <span>
-            v{version} · <ThemeIcon mode={config.themeMode} /> {config.themeMode === "system" ? "跟随系统" : config.themeMode === "dark" ? "黑暗" : "明亮"}
+            v{version} · <ThemeIcon mode={config.themeMode} /> {themeLabel(config.themeMode)}
           </span>
         </div>
         <div className="footer-actions">

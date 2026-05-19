@@ -346,7 +346,7 @@ button {
   width: 100%;
   min-width: 0;
   height: 34px;
-  padding: 0 9px;
+  padding: 0 34px 0 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
@@ -354,9 +354,56 @@ button {
   outline: none;
 }
 
+.field select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 14px,
+    calc(100% - 11px) 14px;
+  background-repeat: no-repeat;
+  background-size: 5px 5px;
+  cursor: pointer;
+}
+
+.field input:hover,
+.field select:hover {
+  border-color: color-mix(in srgb, var(--accent), var(--border) 55%);
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent), transparent 78%);
+}
+
+.field input[type="time"],
+.field input[type="number"] {
+  padding-right: 10px;
+}
+
+.field input[type="range"] {
+  height: 34px;
+  padding: 0;
+  accent-color: var(--accent);
+  background: transparent;
+}
+
 :root[data-theme="light"] .field input,
 :root[data-theme="light"] .field select {
   background: #ffffff;
+}
+
+:root[data-theme="light"] .field select {
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 14px,
+    calc(100% - 11px) 14px;
+  background-repeat: no-repeat;
+  background-size: 5px 5px;
 }
 
 .toggle-list {
