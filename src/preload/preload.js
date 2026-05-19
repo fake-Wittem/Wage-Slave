@@ -3,8 +3,11 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("wageApp", {
   getInitialState: () => ipcRenderer.invoke("app:get-initial-state"),
   updateConfig: (patch) => ipcRenderer.invoke("app:update-config", patch),
+  getWeather: (city) => ipcRenderer.invoke("weather:get", city),
   collapseWindow: (edge) => ipcRenderer.invoke("window:collapse", edge),
   expandWindow: () => ipcRenderer.invoke("window:expand"),
+  minimizeWindow: () => ipcRenderer.invoke("window:minimize"),
+  closeWindowToTray: () => ipcRenderer.invoke("window:close-to-tray"),
   setPointerInside: (inside) => ipcRenderer.invoke("window:set-pointer-inside", inside),
   onConfigUpdated: (handler) => {
     ipcRenderer.on("config-updated", (_event, payload) => handler(payload));

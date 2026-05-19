@@ -6,6 +6,7 @@ const isDev = Boolean(process.env.VITE_DEV_SERVER_URL);
 const widgetSize = { width: 360, height: 580 };
 const collapseHandleLength = 116;
 const defaultSnapThreshold = 28;
+const appIconPath = path.join(__dirname, "../assets/app-icon.png");
 
 const defaultConfig = {
   salaryMode: "monthly",
@@ -35,6 +36,7 @@ const defaultConfig = {
     displayId: "primary",
     edge: "right"
   },
+  lastHiddenBounds: null,
   privacyMode: false,
   moneyDecimals: 2
 };
@@ -48,6 +50,11 @@ let snapTimer = null;
 let collapsed = false;
 let pointerInsideWidget = false;
 let isProgrammaticMove = false;
+let weatherCache = {
+  city: null,
+  fetchedAt: 0,
+  data: null
+};
 
 function configPath() {
   return path.join(app.getPath("userData"), "config.json");
@@ -73,6 +80,130 @@ function getResolvedTheme() {
   }
 
   return nativeTheme.shouldUseDarkColors ? "dark" : "light";
+}
+
+const weatherCodeText = {
+  0: "晴",
+  1: "大致晴朗",
+  2: "少云",
+  3: "多云",
+  45: "有雾",
+  48: "雾凇",
+  51: "小毛毛雨",
+  53: "毛毛雨",
+  55: "大毛毛雨",
+  61: "小雨",
+  63: "中雨",
+  65: "大雨",
+  71: "小雪",
+  73: "中雪",
+  75: "大雪",
+  80: "小阵雨",
+  81: "阵雨",
+  82: "强阵雨",
+  95: "雷雨",
+  96: "雷雨伴冰雹",
+  99: "强雷雨伴冰雹"
+};
+
+function normalizeWeatherCity(city) {
+  return String(city || defaultConfig.city).trim() || defaultConfig.city;
+}
+
+async function fetchJson(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`Weather request failed: ${response.status}`);
+    }
+
+    return response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function getCityCoordinates(city) {
+  const params = new URLSearchParams({
+    name: city,
+    count: "1",
+    language: "zh",
+    format: "json"
+  });
+  const payload = await fetchJson(`https://geocoding-api.open-meteo.com/v1/search?${params}`);
+  const place = payload?.results?.[0];
+  if (!place) {
+    throw new Error(`City not found: ${city}`);
+  }
+
+  return {
+    name: place.name || city,
+    latitude: place.latitude,
+    longitude: place.longitude
+  };
+}
+
+async function getWeather(city = config.city) {
+  const normalizedCity = normalizeWeatherCity(city);
+  const now = Date.now();
+  if (
+    weatherCache.data
+    && weatherCache.city === normalizedCity
+    && now - weatherCache.fetchedAt < 10 * 60 * 1000
+  ) {
+    return weatherCache.data;
+  }
+
+  const place = await getCityCoordinates(normalizedCity);
+  const forecastParams = new URLSearchParams({
+    latitude: String(place.latitude),
+    longitude: String(place.longitude),
+    current: "temperature_2m,weather_code",
+    timezone: "auto"
+  });
+  const airParams = new URLSearchParams({
+    latitude: String(place.latitude),
+    longitude: String(place.longitude),
+    current: "us_aqi",
+    timezone: "auto"
+  });
+
+  const [forecast, air] = await Promise.all([
+    fetchJson(`https://api.open-meteo.com/v1/forecast?${forecastParams}`),
+    fetchJson(`https://air-quality-api.open-meteo.com/v1/air-quality?${airParams}`).catch(() => null)
+  ]);
+
+  const weatherCode = forecast?.current?.weather_code;
+  const temperature = forecast?.current?.temperature_2m;
+  const data = {
+    city: place.name,
+    condition: weatherCodeText[weatherCode] || "天气",
+    temperature: Number.isFinite(Number(temperature)) ? Math.round(Number(temperature)) : null,
+    aqi: Number.isFinite(Number(air?.current?.us_aqi)) ? Math.round(Number(air.current.us_aqi)) : null,
+    updatedAt: new Date().toISOString()
+  };
+
+  weatherCache = {
+    city: normalizedCity,
+    fetchedAt: now,
+    data
+  };
+
+  return data;
+}
+
+function getAppIcon() {
+  const icon = nativeImage.createFromPath(appIconPath);
+  if (!icon.isEmpty()) {
+    return icon;
+  }
+
+  return nativeImage.createFromDataURL(
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAAI0lEQVR42mP8z8AARLJgwiIYBaNgFIyCUTAKRsEoGAVDEwAAQ/0CHY8mQ3QAAAAASUVORK5CYII="
+  );
 }
 
 function applyWindowPreferences() {
@@ -102,6 +233,7 @@ function createWindow() {
     skipTaskbar: false,
     alwaysOnTop: Boolean(config.alwaysOnTop),
     backgroundColor: "#00000000",
+    icon: appIconPath,
     webPreferences: {
       preload: path.join(__dirname, "../preload/preload.js"),
       contextIsolation: true,
@@ -118,6 +250,11 @@ function createWindow() {
 
   mainWindow.once("ready-to-show", () => {
     applyWindowPreferences();
+    const initialBounds = normalizeWidgetBounds(config.lastHiddenBounds);
+    if (initialBounds) {
+      expandedBounds = initialBounds;
+      setWindowBounds(initialBounds);
+    }
     mainWindow.show();
   });
 
@@ -140,17 +277,20 @@ function createWindow() {
     }, 70);
   });
 
+  mainWindow.on("hide", () => {
+    rememberHiddenBounds();
+  });
+
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
 }
 
 function createTray() {
-  const icon = nativeImage.createFromDataURL(
-    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAAI0lEQVR42mP8z8AARLJgwiIYBaNgFIyCUTAKRsEoGAVDEwAAQ/0CHY8mQ3QAAAAASUVORK5CYII="
-  );
+  const icon = getAppIcon().resize({ width: 16, height: 16 });
   tray = new Tray(icon);
   tray.setToolTip(`工薪小卡片 v${app.getVersion()}`);
+  tray.on("double-click", () => expandWindow());
   tray.setContextMenu(Menu.buildFromTemplate([
     {
       label: "显示 / 展开",
@@ -189,6 +329,53 @@ function nearestEdge(bounds, display) {
   };
 
   return Object.entries(distances).sort((a, b) => a[1] - b[1])[0];
+}
+
+function normalizeWidgetBounds(bounds) {
+  if (!bounds) {
+    return null;
+  }
+
+  const widgetBounds = {
+    width: widgetSize.width,
+    height: widgetSize.height,
+    x: Number(bounds.x),
+    y: Number(bounds.y)
+  };
+
+  if (!Number.isFinite(widgetBounds.x) || !Number.isFinite(widgetBounds.y)) {
+    return null;
+  }
+
+  const display = screen.getDisplayMatching({
+    x: widgetBounds.x,
+    y: widgetBounds.y,
+    width: widgetBounds.width,
+    height: widgetBounds.height
+  });
+  const area = display.workArea;
+
+  return {
+    ...widgetBounds,
+    x: Math.min(Math.max(widgetBounds.x, area.x), area.x + area.width - widgetBounds.width),
+    y: Math.min(Math.max(widgetBounds.y, area.y), area.y + area.height - widgetBounds.height)
+  };
+}
+
+function rememberHiddenBounds() {
+  if (!mainWindow) {
+    return;
+  }
+
+  const bounds = collapsed ? expandedBounds : mainWindow.getBounds();
+  const normalizedBounds = normalizeWidgetBounds(bounds);
+  if (!normalizedBounds) {
+    return;
+  }
+
+  expandedBounds = normalizedBounds;
+  config.lastHiddenBounds = normalizedBounds;
+  saveConfig();
 }
 
 function setWindowBounds(bounds) {
@@ -320,11 +507,15 @@ function expandWindow() {
     return;
   }
 
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+
   const currentBounds = mainWindow.getBounds();
   const display = screen.getDisplayMatching(currentBounds);
   const area = display.workArea;
   const edge = config.edgeCollapsePosition?.edge || "right";
-  const target = expandedBounds || {
+  const target = normalizeWidgetBounds(expandedBounds) || normalizeWidgetBounds(config.lastHiddenBounds) || {
     width: widgetSize.width,
     height: widgetSize.height,
     x: edge === "right" ? area.x + area.width - widgetSize.width : area.x,
@@ -338,6 +529,22 @@ function expandWindow() {
   setWindowBounds(target);
   mainWindow.show();
   mainWindow.webContents.send("window-expanded", { edge });
+}
+
+function minimizeWindow() {
+  if (!mainWindow) {
+    return;
+  }
+
+  mainWindow.minimize();
+}
+
+function closeWindowToTray() {
+  if (!mainWindow) {
+    return;
+  }
+
+  mainWindow.hide();
 }
 
 function scheduleCollapseAfterPointerLeave() {
@@ -368,8 +575,11 @@ ipcMain.handle("app:update-config", (_event, patch) => {
   return { config, resolvedTheme: getResolvedTheme() };
 });
 
+ipcMain.handle("weather:get", (_event, city) => getWeather(city));
 ipcMain.handle("window:collapse", (_event, edge) => collapseWindow(edge, true));
 ipcMain.handle("window:expand", () => expandWindow());
+ipcMain.handle("window:minimize", () => minimizeWindow());
+ipcMain.handle("window:close-to-tray", () => closeWindowToTray());
 ipcMain.handle("window:set-pointer-inside", (_event, inside) => {
   pointerInsideWidget = Boolean(inside);
   if (pointerInsideWidget) {
@@ -384,6 +594,7 @@ nativeTheme.on("updated", () => {
 });
 
 app.whenReady().then(() => {
+  app.setAppUserModelId("wage-slave");
   readConfig();
   createWindow();
   createTray();

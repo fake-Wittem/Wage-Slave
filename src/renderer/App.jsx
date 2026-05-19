@@ -8,6 +8,7 @@ import {
   Eye,
   EyeOff,
   GripHorizontal,
+  Minus,
   Monitor,
   Moon,
   Pin,
@@ -60,6 +61,21 @@ function themeLabel(mode) {
   }
 
   return "跟随系统";
+}
+
+function weatherSummary(city, weather) {
+  if (weather.status === "loading") {
+    return `${city} · 天气加载中`;
+  }
+
+  if (!weather.data) {
+    return `${city} · 天气暂不可用`;
+  }
+
+  const temperature = weather.data.temperature === null ? "--" : `${weather.data.temperature}°C`;
+  const aqi = weather.data.aqi === null ? null : `AQI ${weather.data.aqi}`;
+
+  return [weather.data.city || city, weather.data.condition, temperature, aqi].filter(Boolean).join(" · ");
 }
 
 function Field({ label, children }) {
@@ -364,6 +380,7 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [collapseEdge, setCollapseEdge] = useState("right");
+  const [weather, setWeather] = useState({ status: "loading", data: null, error: null });
 
   useEffect(() => {
     window.wageApp?.getInitialState().then((state) => {
@@ -395,7 +412,48 @@ export function App() {
     document.documentElement.dataset.theme = resolvedTheme;
   }, [resolvedTheme]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshWeather() {
+      if (!window.wageApp?.getWeather) {
+        setWeather({ status: "error", data: null, error: "Weather API unavailable" });
+        return;
+      }
+
+      setWeather((current) => ({
+        status: current.data ? "ready" : "loading",
+        data: current.data,
+        error: null
+      }));
+
+      try {
+        const data = await window.wageApp.getWeather(config.city);
+        if (!cancelled) {
+          setWeather({ status: "ready", data, error: null });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setWeather((current) => ({
+            status: "error",
+            data: current.data,
+            error: error?.message || "Weather request failed"
+          }));
+        }
+      }
+    }
+
+    refreshWeather();
+    const timer = window.setInterval(refreshWeather, 10 * 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [config.city]);
+
   const wage = useMemo(() => calculateWage(now, config), [now, config]);
+  const weatherText = weatherSummary(config.city, weather);
 
   function patchConfig(patch) {
     const next = { ...config, ...patch };
@@ -423,11 +481,31 @@ export function App() {
       <div className="drag-strip">
         <GripHorizontal size={18} />
       </div>
+      <div className="window-actions">
+        <button
+          className="window-button"
+          type="button"
+          onClick={() => window.wageApp?.minimizeWindow()}
+          aria-label="最小化到任务栏"
+          title="最小化"
+        >
+          <Minus size={15} />
+        </button>
+        <button
+          className="window-button"
+          type="button"
+          onClick={() => window.wageApp?.closeWindowToTray()}
+          aria-label="关闭到系统托盘"
+          title="关闭"
+        >
+          <X size={15} />
+        </button>
+      </div>
 
       <header className="top-row">
         <div>
           <p>{formatDate(now)}</p>
-          <span>{config.city} · 多云 27°C · AQI 42</span>
+          <span>{weatherText}</span>
         </div>
         <CloudSun size={30} />
       </header>

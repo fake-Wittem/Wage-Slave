@@ -82,7 +82,7 @@ button {
   gap: 0;
   width: 100vw;
   height: 100vh;
-  padding: 28px 28px 18px;
+  padding: 42px 28px 18px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -105,6 +105,40 @@ button {
   color: var(--soft);
   transform: translateX(-50%);
   -webkit-app-region: drag;
+}
+
+.window-actions {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  -webkit-app-region: no-drag;
+}
+
+.window-button {
+  display: grid;
+  width: 26px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--soft);
+  background: transparent;
+  cursor: pointer;
+}
+
+.window-button:hover {
+  border-color: var(--border);
+  color: var(--text);
+  background: var(--surface);
+}
+
+.window-button:last-child:hover {
+  border-color: rgba(255, 105, 120, 0.42);
+  color: #ff8a96;
+  background: rgba(255, 105, 120, 0.12);
 }
 
 .top-row,
@@ -314,6 +348,8 @@ button {
 }
 
 .footer-actions {
+  display: flex;
+  gap: 6px;
   flex: 0 0 auto;
 }
 
