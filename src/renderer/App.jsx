@@ -35,6 +35,7 @@ const fallbackConfig = {
   clickThrough: false,
   opacity: 0.94,
   themeMode: "system",
+  edgeSnapEnabled: true,
   edgeCollapseEnabled: true,
   edgeCollapseDelayMs: 800,
   edgeCollapseHandleSize: 12,
@@ -349,6 +350,7 @@ function SettingsPanel({ config, version, onClose, onPatch }) {
       <div className="toggle-list">
         <Toggle label="窗口置顶" checked={config.alwaysOnTop} onChange={(value) => onPatch({ alwaysOnTop: value })} />
         <Toggle label="开机自启动" checked={config.launchAtStartup} onChange={(value) => onPatch({ launchAtStartup: value })} />
+        <Toggle label="靠边吸附" checked={config.edgeSnapEnabled} onChange={(value) => onPatch({ edgeSnapEnabled: value })} />
         <Toggle label="靠边收起" checked={config.edgeCollapseEnabled} onChange={(value) => onPatch({ edgeCollapseEnabled: value })} />
         <Toggle label="隐私金额" checked={config.privacyMode} onChange={(value) => onPatch({ privacyMode: value })} />
       </div>

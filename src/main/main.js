@@ -5,6 +5,7 @@ const path = require("path");
 const isDev = Boolean(process.env.VITE_DEV_SERVER_URL);
 const widgetSize = { width: 360, height: 580 };
 const collapseHandleLength = 116;
+const defaultSnapThreshold = 28;
 
 const defaultConfig = {
   salaryMode: "monthly",
@@ -26,6 +27,8 @@ const defaultConfig = {
   clickThrough: false,
   opacity: 0.94,
   themeMode: "system",
+  edgeSnapEnabled: true,
+  edgeSnapThreshold: defaultSnapThreshold,
   edgeCollapseEnabled: true,
   edgeCollapseDelayMs: 800,
   edgeCollapseHandleSize: 12,
@@ -42,8 +45,10 @@ let tray;
 let config = { ...defaultConfig };
 let expandedBounds = null;
 let collapseTimer = null;
+let snapTimer = null;
 let collapsed = false;
 let pointerInsideWidget = false;
+let isProgrammaticMove = false;
 
 function configPath() {
   return path.join(app.getPath("userData"), "config.json");
@@ -118,12 +123,22 @@ function createWindow() {
   });
 
   mainWindow.on("move", () => {
-    if (collapsed || !config.edgeCollapseEnabled || config.lockPosition) {
+    if (collapsed || config.lockPosition || isProgrammaticMove) {
       return;
     }
 
+    if (!config.edgeSnapEnabled && !config.edgeCollapseEnabled) {
+      return;
+    }
+
+    clearTimeout(snapTimer);
     clearTimeout(collapseTimer);
-    collapseTimer = setTimeout(() => collapseIfNearEdge(), config.edgeCollapseDelayMs);
+    snapTimer = setTimeout(() => {
+      const snapped = snapWindowIfNearEdge();
+      if (config.edgeCollapseEnabled && !snapped) {
+        scheduleCollapseAfterPointerLeave();
+      }
+    }, 180);
   });
 
   mainWindow.on("closed", () => {
@@ -175,6 +190,72 @@ function nearestEdge(bounds, display) {
   };
 
   return Object.entries(distances).sort((a, b) => a[1] - b[1])[0];
+}
+
+function setWindowBounds(bounds) {
+  if (!mainWindow) {
+    return;
+  }
+
+  isProgrammaticMove = true;
+  mainWindow.setBounds(bounds, true);
+  setTimeout(() => {
+    isProgrammaticMove = false;
+  }, 120);
+}
+
+function snapWindowIfNearEdge() {
+  if (!mainWindow || collapsed || config.lockPosition || !config.edgeSnapEnabled) {
+    return false;
+  }
+
+  const bounds = mainWindow.getBounds();
+  const display = screen.getDisplayMatching(bounds);
+  const area = display.workArea;
+  const [edge, distance] = nearestEdge(bounds, display);
+  const threshold = Math.max(8, Math.min(80, Number(config.edgeSnapThreshold) || defaultSnapThreshold));
+
+  if (distance > threshold) {
+    return false;
+  }
+
+  const snappedBounds = {
+    ...bounds,
+    x: Math.min(Math.max(bounds.x, area.x), area.x + area.width - bounds.width),
+    y: Math.min(Math.max(bounds.y, area.y), area.y + area.height - bounds.height)
+  };
+
+  if (edge === "left") {
+    snappedBounds.x = area.x;
+  }
+  if (edge === "right") {
+    snappedBounds.x = area.x + area.width - bounds.width;
+  }
+  if (edge === "top") {
+    snappedBounds.y = area.y;
+  }
+  if (edge === "bottom") {
+    snappedBounds.y = area.y + area.height - bounds.height;
+  }
+
+  config.edgeCollapsePosition = {
+    displayId: String(display.id),
+    edge
+  };
+  saveConfig();
+  expandedBounds = {
+    width: widgetSize.width,
+    height: widgetSize.height,
+    x: snappedBounds.x,
+    y: snappedBounds.y
+  };
+  setWindowBounds(snappedBounds);
+
+  if (config.edgeCollapseEnabled) {
+    scheduleCollapseAfterPointerLeave();
+  }
+
+  return true;
 }
 
 function collapseIfNearEdge() {
@@ -231,7 +312,7 @@ function collapseWindow(edge = config.edgeCollapsePosition?.edge || "right", for
   };
   saveConfig();
   collapsed = true;
-  mainWindow.setBounds(collapsedBounds, true);
+  setWindowBounds(collapsedBounds);
   mainWindow.webContents.send("window-collapsed", { edge, handle });
 }
 
@@ -254,7 +335,8 @@ function expandWindow() {
   pointerInsideWidget = true;
   collapsed = false;
   clearTimeout(collapseTimer);
-  mainWindow.setBounds(target, true);
+  clearTimeout(snapTimer);
+  setWindowBounds(target);
   mainWindow.show();
   mainWindow.webContents.send("window-expanded", { edge });
 }
