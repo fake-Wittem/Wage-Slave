@@ -2,6 +2,13 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.1.10] - 2026-05-19
+
+### Changed
+
+- 将本月数据卡片的淡色主题渐变同步应用到天气卡片。
+- 调整深色和浅色主题下的卡片背景层次，使内部卡片更柔和。
+
 ## [0.1.9] - 2026-05-19
 
 ### Changed

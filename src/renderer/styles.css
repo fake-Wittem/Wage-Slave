@@ -15,6 +15,9 @@
   --accent-2: #c4a5ff;
   --progress-gradient: linear-gradient(90deg, #75e8ff 0%, #9ea7ff 52%, #e5a8ff 100%);
   --handle-gradient: linear-gradient(180deg, #9fe9ff 0%, #c3a6ff 58%, #f4b7ff 100%);
+  --card-tint:
+    radial-gradient(circle at 14% 0%, rgba(117, 232, 255, 0.16), transparent 46%),
+    linear-gradient(135deg, rgba(142, 168, 255, 0.13), rgba(229, 168, 255, 0.09));
   --shadow: rgba(0, 0, 0, 0.35);
 }
 
@@ -30,6 +33,9 @@
   --accent-2: #c46bff;
   --progress-gradient: linear-gradient(90deg, #47b6ff 0%, #8b7cff 50%, #e07bff 100%);
   --handle-gradient: linear-gradient(180deg, #5ecbff 0%, #9a7cff 56%, #ef8fff 100%);
+  --card-tint:
+    radial-gradient(circle at 16% 0%, rgba(71, 182, 255, 0.16), transparent 48%),
+    linear-gradient(135deg, rgba(91, 141, 255, 0.12), rgba(224, 123, 255, 0.08));
   --shadow: rgba(60, 82, 101, 0.2);
 }
 
@@ -118,7 +124,9 @@ button {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--surface);
+  background:
+    var(--card-tint),
+    var(--surface);
 }
 
 .top-row p,
@@ -244,7 +252,7 @@ button {
   border: 1px solid var(--border);
   border-radius: 10px;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--accent), transparent 92%), color-mix(in srgb, var(--accent-2), transparent 94%)),
+    var(--card-tint),
     var(--surface);
 }
 
