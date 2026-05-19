@@ -2,6 +2,13 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.1.8] - 2026-05-19
+
+### Changed
+
+- 靠边收起提示条移除内部文字，改为纯胶囊色块。
+- 调整浅色和深色主题的进度条、靠边提示条渐变配色，使整体更现代、轻盈。
+
 ## [0.1.7] - 2026-05-19
 
 ### Fixed

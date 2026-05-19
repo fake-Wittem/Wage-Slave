@@ -409,9 +409,8 @@ export function App() {
         className={`collapse-handle ${collapseEdge}`}
         onMouseEnter={() => window.wageApp?.expandWindow()}
         onClick={() => window.wageApp?.expandWindow()}
-      >
-        <span>¥</span>
-      </main>
+        aria-label="展开工薪小卡片"
+      />
     );
   }
 

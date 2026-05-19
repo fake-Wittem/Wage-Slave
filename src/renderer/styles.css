@@ -11,8 +11,10 @@
   --text: #f3f8fb;
   --muted: #9fb1c3;
   --soft: #7f92a5;
-  --accent: #54d6b1;
-  --accent-2: #ffe08a;
+  --accent: #8ddcff;
+  --accent-2: #c4a5ff;
+  --progress-gradient: linear-gradient(90deg, #75e8ff 0%, #9ea7ff 52%, #e5a8ff 100%);
+  --handle-gradient: linear-gradient(180deg, #9fe9ff 0%, #c3a6ff 58%, #f4b7ff 100%);
   --shadow: rgba(0, 0, 0, 0.35);
 }
 
@@ -24,8 +26,10 @@
   --text: #1d2b38;
   --muted: #53677a;
   --soft: #73869a;
-  --accent: #128f75;
-  --accent-2: #d09b18;
+  --accent: #4c8dff;
+  --accent-2: #c46bff;
+  --progress-gradient: linear-gradient(90deg, #47b6ff 0%, #8b7cff 50%, #e07bff 100%);
+  --handle-gradient: linear-gradient(180deg, #5ecbff 0%, #9a7cff 56%, #ef8fff 100%);
   --shadow: rgba(60, 82, 101, 0.2);
 }
 
@@ -215,7 +219,7 @@ button {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  background: var(--progress-gradient);
   transition: width 260ms ease;
 }
 
@@ -610,29 +614,13 @@ button {
   height: 100vh;
   place-items: center;
   border-radius: 999px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent-2), transparent 20%), var(--accent));
+  background: var(--handle-gradient);
   color: #10251f;
   cursor: pointer;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    0 8px 18px color-mix(in srgb, var(--accent), transparent 68%);
+    0 8px 18px color-mix(in srgb, var(--accent-2), transparent 68%);
   -webkit-app-region: no-drag;
-}
-
-.collapse-handle span {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  place-items: center;
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.collapse-handle.left span,
-.collapse-handle.right span {
-  writing-mode: vertical-rl;
 }
 
 @media (prefers-reduced-motion: reduce) {
