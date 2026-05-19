@@ -10,16 +10,46 @@
     "electron:dev": "cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .",
     "start": "electron .",
     "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "dist": "npm run build && cross-env ELECTRON_BUILDER_CACHE=.electron-builder-cache electron-builder --win"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
     "cross-env": "^7.0.3",
-    "electron": "^31.7.7",
-    "vite": "^5.4.21",
+    "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "lucide-react": "^0.468.0"
+    "vite": "^5.4.21"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.fakewittem.wageslave",
+    "productName": "Wage Slave",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "src/main/**/*",
+      "src/preload/**/*",
+      "src/assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "src/assets/app-icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
 }
