@@ -609,13 +609,22 @@ button {
   width: 100vw;
   height: 100vh;
   place-items: center;
-  background: var(--accent);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-2), transparent 20%), var(--accent));
   color: #10251f;
   cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 8px 18px color-mix(in srgb, var(--accent), transparent 68%);
   -webkit-app-region: no-drag;
 }
 
 .collapse-handle span {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
   font-size: 12px;
   font-weight: 900;
   line-height: 1;

@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld("wageApp", {
   updateConfig: (patch) => ipcRenderer.invoke("app:update-config", patch),
   collapseWindow: (edge) => ipcRenderer.invoke("window:collapse", edge),
   expandWindow: () => ipcRenderer.invoke("window:expand"),
+  setPointerInside: (inside) => ipcRenderer.invoke("window:set-pointer-inside", inside),
   onConfigUpdated: (handler) => {
     ipcRenderer.on("config-updated", (_event, payload) => handler(payload));
   },

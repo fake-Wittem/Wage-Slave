@@ -416,7 +416,11 @@ export function App() {
   }
 
   return (
-    <main className="widget-shell">
+    <main
+      className="widget-shell"
+      onMouseEnter={() => window.wageApp?.setPointerInside(true)}
+      onMouseLeave={() => window.wageApp?.setPointerInside(false)}
+    >
       <div className="drag-strip">
         <GripHorizontal size={18} />
       </div>

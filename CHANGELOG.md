@@ -2,6 +2,13 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.1.7] - 2026-05-19
+
+### Fixed
+
+- 靠边收起提示条改为短胶囊形状，减少桌面视觉遮挡。
+- 修复鼠标悬停展开后仍被自动收起的问题。
+
 ## [0.1.6] - 2026-05-19
 
 ### Fixed

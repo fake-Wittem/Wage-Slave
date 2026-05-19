@@ -4,6 +4,7 @@ const path = require("path");
 
 const isDev = Boolean(process.env.VITE_DEV_SERVER_URL);
 const widgetSize = { width: 360, height: 580 };
+const collapseHandleLength = 116;
 
 const defaultConfig = {
   salaryMode: "monthly",
@@ -42,6 +43,7 @@ let config = { ...defaultConfig };
 let expandedBounds = null;
 let collapseTimer = null;
 let collapsed = false;
+let pointerInsideWidget = false;
 
 function configPath() {
   return path.join(app.getPath("userData"), "config.json");
@@ -176,7 +178,7 @@ function nearestEdge(bounds, display) {
 }
 
 function collapseIfNearEdge() {
-  if (!mainWindow || !config.edgeCollapseEnabled || collapsed) {
+  if (!mainWindow || !config.edgeCollapseEnabled || collapsed || pointerInsideWidget) {
     return;
   }
 
@@ -190,8 +192,8 @@ function collapseIfNearEdge() {
   collapseWindow(edge);
 }
 
-function collapseWindow(edge = config.edgeCollapsePosition?.edge || "right") {
-  if (!mainWindow) {
+function collapseWindow(edge = config.edgeCollapsePosition?.edge || "right", force = false) {
+  if (!mainWindow || (pointerInsideWidget && !force)) {
     return;
   }
 
@@ -207,11 +209,20 @@ function collapseWindow(edge = config.edgeCollapsePosition?.edge || "right") {
     y: Math.min(Math.max(bounds.y, area.y), area.y + area.height - widgetSize.height)
   };
 
+  const length = collapseHandleLength;
+  const verticalY = Math.min(
+    Math.max(expandedBounds.y + (widgetSize.height - length) / 2, area.y),
+    area.y + area.height - length
+  );
+  const horizontalX = Math.min(
+    Math.max(expandedBounds.x + (widgetSize.width - length) / 2, area.x),
+    area.x + area.width - length
+  );
   const collapsedBounds = {
-    left: { x: area.x, y: expandedBounds.y, width: handle, height: widgetSize.height },
-    right: { x: area.x + area.width - handle, y: expandedBounds.y, width: handle, height: widgetSize.height },
-    top: { x: expandedBounds.x, y: area.y, width: widgetSize.width, height: handle },
-    bottom: { x: expandedBounds.x, y: area.y + area.height - handle, width: widgetSize.width, height: handle }
+    left: { x: area.x, y: Math.round(verticalY), width: handle, height: length },
+    right: { x: area.x + area.width - handle, y: Math.round(verticalY), width: handle, height: length },
+    top: { x: Math.round(horizontalX), y: area.y, width: length, height: handle },
+    bottom: { x: Math.round(horizontalX), y: area.y + area.height - handle, width: length, height: handle }
   }[edge];
 
   config.edgeCollapsePosition = {
@@ -240,10 +251,21 @@ function expandWindow() {
     y: Math.min(Math.max(currentBounds.y, area.y), area.y + area.height - widgetSize.height)
   };
 
+  pointerInsideWidget = true;
   collapsed = false;
+  clearTimeout(collapseTimer);
   mainWindow.setBounds(target, true);
   mainWindow.show();
   mainWindow.webContents.send("window-expanded", { edge });
+}
+
+function scheduleCollapseAfterPointerLeave() {
+  if (!mainWindow || !config.edgeCollapseEnabled || collapsed) {
+    return;
+  }
+
+  clearTimeout(collapseTimer);
+  collapseTimer = setTimeout(() => collapseIfNearEdge(), config.edgeCollapseDelayMs);
 }
 
 ipcMain.handle("app:get-initial-state", () => ({
@@ -265,8 +287,16 @@ ipcMain.handle("app:update-config", (_event, patch) => {
   return { config, resolvedTheme: getResolvedTheme() };
 });
 
-ipcMain.handle("window:collapse", (_event, edge) => collapseWindow(edge));
+ipcMain.handle("window:collapse", (_event, edge) => collapseWindow(edge, true));
 ipcMain.handle("window:expand", () => expandWindow());
+ipcMain.handle("window:set-pointer-inside", (_event, inside) => {
+  pointerInsideWidget = Boolean(inside);
+  if (pointerInsideWidget) {
+    clearTimeout(collapseTimer);
+  } else {
+    scheduleCollapseAfterPointerLeave();
+  }
+});
 
 nativeTheme.on("updated", () => {
   mainWindow?.webContents.send("theme-updated", getResolvedTheme());
