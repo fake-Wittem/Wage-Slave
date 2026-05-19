@@ -31,6 +31,7 @@
     "directories": {
       "output": "release"
     },
+    "afterPack": "build/after-pack.js",
     "files": [
       "dist/**/*",
       "src/main/**/*",
@@ -49,7 +50,9 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "installerIcon": "src/assets/app-icon.ico",
+      "uninstallerIcon": "src/assets/app-icon.ico"
     }
   }
 }
