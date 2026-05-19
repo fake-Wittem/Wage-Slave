@@ -36,8 +36,8 @@ const fallbackConfig = {
   opacity: 0.94,
   themeMode: "system",
   edgeCollapseEnabled: true,
-  edgeCollapseDelayMs: 800,
-  edgeCollapseHandleSize: 8,
+  edgeCollapseDelayMs: 260,
+  edgeCollapseHandleSize: 4,
   privacyMode: false
 };
 

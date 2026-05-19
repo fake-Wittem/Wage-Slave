@@ -29,8 +29,8 @@ const defaultConfig = {
   themeMode: "system",
   edgeSnapThreshold: defaultSnapThreshold,
   edgeCollapseEnabled: true,
-  edgeCollapseDelayMs: 800,
-  edgeCollapseHandleSize: 8,
+  edgeCollapseDelayMs: 260,
+  edgeCollapseHandleSize: 4,
   edgeCollapsePosition: {
     displayId: "primary",
     edge: "right"
@@ -137,7 +137,7 @@ function createWindow() {
       if (config.edgeCollapseEnabled && !snapped) {
         scheduleCollapseAfterPointerLeave();
       }
-    }, 180);
+    }, 70);
   });
 
   mainWindow.on("closed", () => {
@@ -197,10 +197,10 @@ function setWindowBounds(bounds) {
   }
 
   isProgrammaticMove = true;
-  mainWindow.setBounds(bounds, true);
+  mainWindow.setBounds(bounds, false);
   setTimeout(() => {
     isProgrammaticMove = false;
-  }, 120);
+  }, 40);
 }
 
 function snapWindowIfNearEdge() {
@@ -280,7 +280,7 @@ function collapseWindow(edge = config.edgeCollapsePosition?.edge || "right", for
   const bounds = mainWindow.getBounds();
   const display = screen.getDisplayMatching(bounds);
   const area = display.workArea;
-  const handle = Math.max(6, Math.min(14, Number(config.edgeCollapseHandleSize) || 8));
+  const handle = Math.max(3, Math.min(8, Number(config.edgeCollapseHandleSize) || 4));
 
   expandedBounds = {
     width: widgetSize.width,

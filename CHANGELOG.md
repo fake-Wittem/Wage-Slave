@@ -2,6 +2,13 @@
 
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
+## [0.2.3] - 2026-05-19
+
+### Changed
+
+- 靠边收起提示条进一步收细，默认宽度降为 `4px`。
+- 优化靠边吸附、收起和展开速度，减少窗口定位动画延迟，提升跟手感。
+
 ## [0.2.2] - 2026-05-19
 
 ### Changed
