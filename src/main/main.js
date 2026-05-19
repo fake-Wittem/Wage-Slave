@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 const isDev = Boolean(process.env.VITE_DEV_SERVER_URL);
-const widgetSize = { width: 360, height: 540 };
+const widgetSize = { width: 360, height: 580 };
 
 const defaultConfig = {
   salaryMode: "monthly",
