@@ -465,8 +465,8 @@ export function App() {
     return (
       <main
         className={`collapse-handle ${collapseEdge}`}
-        onMouseEnter={() => window.wageApp?.expandWindow()}
-        onClick={() => window.wageApp?.expandWindow()}
+        onMouseEnter={() => window.wageApp?.expandWindow({ activate: false })}
+        onClick={() => window.wageApp?.expandWindow({ activate: true })}
         aria-label="展开工薪小卡片"
       />
     );

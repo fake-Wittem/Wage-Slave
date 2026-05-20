@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld("wageApp", {
   updateConfig: (patch) => ipcRenderer.invoke("app:update-config", patch),
   getWeather: (city) => ipcRenderer.invoke("weather:get", city),
   collapseWindow: (edge) => ipcRenderer.invoke("window:collapse", edge),
-  expandWindow: () => ipcRenderer.invoke("window:expand"),
+  expandWindow: (options) => ipcRenderer.invoke("window:expand", options),
   minimizeWindow: () => ipcRenderer.invoke("window:minimize"),
   closeWindowToTray: () => ipcRenderer.invoke("window:close-to-tray"),
   setPointerInside: (inside) => ipcRenderer.invoke("window:set-pointer-inside", inside),

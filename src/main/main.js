@@ -1,8 +1,11 @@
 const { app, BrowserWindow, ipcMain, nativeTheme, screen, Tray, Menu, nativeImage } = require("electron");
+const { execFile } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const { promisify } = require("util");
 
 const isDev = Boolean(process.env.VITE_DEV_SERVER_URL);
+const execFileAsync = promisify(execFile);
 const widgetSize = { width: 360, height: 580 };
 const collapseHandleLength = 116;
 const defaultSnapThreshold = 28;
@@ -50,6 +53,7 @@ let snapTimer = null;
 let collapsed = false;
 let pointerInsideWidget = false;
 let isProgrammaticMove = false;
+let legacyStartupCleanupStarted = false;
 let weatherCache = {
   city: null,
   fetchedAt: 0,
@@ -206,6 +210,100 @@ function getAppIcon() {
   );
 }
 
+function getLoginItemSettings() {
+  const startupArg = "--launched-at-login";
+  if (app.isPackaged) {
+    return {
+      openAtLogin: Boolean(config.launchAtStartup),
+      path: process.execPath,
+      args: [startupArg]
+    };
+  }
+
+  return {
+    openAtLogin: Boolean(config.launchAtStartup),
+    path: process.execPath,
+    args: [app.getAppPath(), startupArg]
+  };
+}
+
+function parseRegistryRunItems(stdout) {
+  return String(stdout || "")
+    .split(/\r?\n/)
+    .map((line) => line.match(/^\s{4}(.+?)\s{2,}(REG_\w+)\s{2,}(.+)$/))
+    .filter(Boolean)
+    .map((match) => ({
+      name: match[1].trim(),
+      type: match[2],
+      command: match[3].trim()
+    }));
+}
+
+function isLegacyWageSlaveElectronStartup(item) {
+  const command = item.command.toLowerCase().replace(/\//g, "\\");
+  const pointsToElectron = /(^|\\)electron\.exe(\s|$|")/.test(command)
+    || command.includes("\\electron\\dist\\electron.exe");
+  const hasProjectMarker = command.includes("\\wage_slave\\")
+    || command.includes("\\wage-slave\\")
+    || command.includes("electron-projects\\wage_slave");
+
+  return pointsToElectron && hasProjectMarker;
+}
+
+async function cleanupLegacyElectronStartupItems() {
+  if (process.platform !== "win32") {
+    return;
+  }
+
+  const runKey = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+  const approvedKey = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\Run";
+  let stdout = "";
+
+  try {
+    ({ stdout } = await execFileAsync("reg.exe", ["query", runKey], { windowsHide: true }));
+  } catch (error) {
+    if (error?.code !== 1) {
+      console.warn("Failed to query startup items:", error?.message || error);
+    }
+    return;
+  }
+
+  const legacyItems = parseRegistryRunItems(stdout).filter(isLegacyWageSlaveElectronStartup);
+  await Promise.all(legacyItems.map(async (item) => {
+    try {
+      await execFileAsync("reg.exe", ["delete", runKey, "/v", item.name, "/f"], { windowsHide: true });
+      await execFileAsync("reg.exe", ["delete", approvedKey, "/v", item.name, "/f"], { windowsHide: true }).catch(() => {});
+      console.info(`Removed legacy startup item: ${item.name}`);
+    } catch (error) {
+      console.warn(`Failed to remove legacy startup item ${item.name}:`, error?.message || error);
+    }
+  }));
+}
+
+function maybeCleanupLegacyStartupItems() {
+  if (config.launchAtStartup || legacyStartupCleanupStarted) {
+    return;
+  }
+
+  legacyStartupCleanupStarted = true;
+  cleanupLegacyElectronStartupItems().catch((error) => {
+    console.warn("Failed to clean legacy Electron startup items:", error?.message || error);
+  });
+}
+
+function syncLoginItemSettings() {
+  if (!app.isPackaged) {
+    app.setLoginItemSettings({
+      openAtLogin: false,
+      path: process.execPath,
+      args: []
+    });
+  }
+
+  app.setLoginItemSettings(getLoginItemSettings());
+  maybeCleanupLegacyStartupItems();
+}
+
 function applyWindowPreferences() {
   if (!mainWindow) {
     return;
@@ -214,10 +312,7 @@ function applyWindowPreferences() {
   mainWindow.setAlwaysOnTop(Boolean(config.alwaysOnTop), "screen-saver");
   mainWindow.setOpacity(Number(config.opacity) || 1);
   mainWindow.setIgnoreMouseEvents(Boolean(config.clickThrough), { forward: true });
-  app.setLoginItemSettings({
-    openAtLogin: Boolean(config.launchAtStartup),
-    path: process.execPath
-  });
+  syncLoginItemSettings();
 }
 
 function createWindow() {
@@ -502,10 +597,12 @@ function collapseWindow(edge = config.edgeCollapsePosition?.edge || "right", for
   mainWindow.webContents.send("window-collapsed", { edge, handle });
 }
 
-function expandWindow() {
+function expandWindow(options = {}) {
   if (!mainWindow) {
     return;
   }
+
+  const activate = options?.activate !== false;
 
   if (mainWindow.isMinimized()) {
     mainWindow.restore();
@@ -527,7 +624,13 @@ function expandWindow() {
   clearTimeout(collapseTimer);
   clearTimeout(snapTimer);
   setWindowBounds(target);
-  mainWindow.show();
+  if (mainWindow.isVisible()) {
+    mainWindow.flashFrame(false);
+  } else if (activate) {
+    mainWindow.show();
+  } else {
+    mainWindow.showInactive();
+  }
   mainWindow.webContents.send("window-expanded", { edge });
 }
 
@@ -577,7 +680,7 @@ ipcMain.handle("app:update-config", (_event, patch) => {
 
 ipcMain.handle("weather:get", (_event, city) => getWeather(city));
 ipcMain.handle("window:collapse", (_event, edge) => collapseWindow(edge, true));
-ipcMain.handle("window:expand", () => expandWindow());
+ipcMain.handle("window:expand", (_event, options) => expandWindow(options));
 ipcMain.handle("window:minimize", () => minimizeWindow());
 ipcMain.handle("window:close-to-tray", () => closeWindowToTray());
 ipcMain.handle("window:set-pointer-inside", (_event, inside) => {
