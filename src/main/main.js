@@ -625,6 +625,17 @@ function collapseWindow(edge = config.edgeCollapsePosition?.edge || "right", for
   mainWindow.webContents.send("window-collapsed", { edge, handle });
 }
 
+function collapseWindowToNearestEdge() {
+  if (!mainWindow) {
+    return;
+  }
+
+  const bounds = mainWindow.getBounds();
+  const display = screen.getDisplayMatching(bounds);
+  const [edge] = nearestEdge(bounds, display);
+  collapseWindow(edge, true);
+}
+
 function expandWindow(options = {}) {
   if (!mainWindow) {
     return;
@@ -667,7 +678,7 @@ function minimizeWindow() {
     return;
   }
 
-  mainWindow.minimize();
+  collapseWindowToNearestEdge();
 }
 
 function closeWindowToTray() {

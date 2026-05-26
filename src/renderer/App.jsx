@@ -486,8 +486,8 @@ export function App() {
           className="window-button"
           type="button"
           onClick={() => window.wageApp?.minimizeWindow()}
-          aria-label="最小化到任务栏"
-          title="最小化"
+          aria-label="收起到屏幕边缘"
+          title="收起到边缘"
         >
           <Minus size={15} />
         </button>
