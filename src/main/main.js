@@ -310,9 +310,27 @@ function applyWindowPreferences() {
   }
 
   mainWindow.setAlwaysOnTop(Boolean(config.alwaysOnTop), "screen-saver");
+  mainWindow.setSkipTaskbar(true);
   mainWindow.setOpacity(Number(config.opacity) || 1);
   mainWindow.setIgnoreMouseEvents(Boolean(config.clickThrough), { forward: true });
   syncLoginItemSettings();
+}
+
+function keepVisibleWhenPinned() {
+  if (!mainWindow || !config.alwaysOnTop) {
+    return;
+  }
+
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+
+  if (!mainWindow.isVisible()) {
+    mainWindow.showInactive();
+  }
+
+  mainWindow.setAlwaysOnTop(true, "screen-saver");
+  mainWindow.moveTop();
 }
 
 function createWindow() {
@@ -325,7 +343,7 @@ function createWindow() {
     transparent: true,
     resizable: false,
     show: false,
-    skipTaskbar: false,
+    skipTaskbar: true,
     alwaysOnTop: Boolean(config.alwaysOnTop),
     backgroundColor: "#00000000",
     icon: appIconPath,
@@ -374,6 +392,16 @@ function createWindow() {
 
   mainWindow.on("hide", () => {
     rememberHiddenBounds();
+  });
+
+  mainWindow.on("minimize", (event) => {
+    if (!config.alwaysOnTop) {
+      return;
+    }
+
+    event.preventDefault();
+    setTimeout(() => keepVisibleWhenPinned(), 0);
+    setTimeout(() => keepVisibleWhenPinned(), 250);
   });
 
   mainWindow.on("closed", () => {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5] - 2026-05-26
+
+### Fixed
+
+- 隐藏应用桌面任务栏入口，保持托盘小组件形态。
+- 修复窗口置顶时仍会被 Win+D 收起的问题。
+
 本项目采用 [Semantic Versioning](https://semver.org/lang/zh-CN/) 版本号规范：`MAJOR.MINOR.PATCH`。
 
 ## [0.2.4] - 2026-05-19
