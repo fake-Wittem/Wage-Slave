@@ -1,5 +1,7 @@
 # Wage Slave
 
+![Wage Slave 应用预览](docs/app-preview.png)
+
 一款 Windows 桌面工资进度小组件，用 Electron + React 构建。它会根据工作时间和薪资设置实时计算今日、本月已赚工资，并以轻量悬浮窗的形式常驻桌面。
 
 ## 功能

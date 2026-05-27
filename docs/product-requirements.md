@@ -354,4 +354,4 @@ shared
 - 卡片圆角克制，建议 8 到 14 像素。
 - 靠边收起时露出的提示条必须清楚但克制，避免形成桌面噪音。
 
-设计预览图见：[design-preview.svg](./design-preview.svg)。
+应用预览图见：[app-preview.png](./app-preview.png)。

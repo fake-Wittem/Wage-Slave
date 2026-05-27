@@ -6,8 +6,8 @@ const { promisify } = require("util");
 
 const isDev = Boolean(process.env.VITE_DEV_SERVER_URL);
 const execFileAsync = promisify(execFile);
-const widgetSize = { width: 360, height: 580 };
-const collapseHandleLength = 116;
+const widgetSize = { width: 500, height: 620 };
+const collapseHandleLength = 132;
 const defaultSnapThreshold = 28;
 const appIconPath = path.join(__dirname, "../assets/app-icon.png");
 
@@ -337,8 +337,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: widgetSize.width,
     height: widgetSize.height,
-    minWidth: 260,
-    minHeight: 160,
+    minWidth: 420,
+    minHeight: 560,
     frame: false,
     transparent: true,
     resizable: false,

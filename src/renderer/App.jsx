@@ -1,22 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  CalendarDays,
-  Check,
-  ChevronDown,
-  ChevronRight,
-  CloudSun,
-  Eye,
-  EyeOff,
-  GripHorizontal,
-  Minus,
-  Monitor,
-  Moon,
-  Pin,
-  Settings,
-  Sun,
-  X
-} from "lucide-react";
-import { calculateWage, formatDate, formatMoney, formatTime } from "./salary.js";
+import { Check, ChevronDown, X } from "lucide-react";
+import { calculateWage, formatMoney, formatTime } from "./salary.js";
 
 const fallbackConfig = {
   salaryMode: "monthly",
@@ -42,40 +26,31 @@ const fallbackConfig = {
   privacyMode: false
 };
 
-function ThemeIcon({ mode }) {
-  if (mode === "light") {
-    return <Sun size={15} />;
-  }
-  if (mode === "dark") {
-    return <Moon size={15} />;
-  }
-  return <Monitor size={15} />;
+function dateParts(date) {
+  return {
+    date: date.toLocaleDateString("zh-CN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    }),
+    weekday: date.toLocaleDateString("zh-CN", { weekday: "long" })
+  };
 }
 
-function themeLabel(mode) {
-  if (mode === "dark") {
-    return "深色";
-  }
-  if (mode === "light") {
-    return "浅色";
-  }
-
-  return "跟随系统";
-}
-
-function weatherSummary(city, weather) {
-  if (weather.status === "loading") {
-    return `${city} · 天气加载中`;
-  }
-
+function weatherParts(city, weather) {
   if (!weather.data) {
-    return `${city} · 天气暂不可用`;
+    return {
+      city,
+      condition: weather.status === "loading" ? "加载中" : "暂不可用",
+      temperature: "--"
+    };
   }
 
-  const temperature = weather.data.temperature === null ? "--" : `${weather.data.temperature}°C`;
-  const aqi = weather.data.aqi === null ? null : `AQI ${weather.data.aqi}`;
-
-  return [weather.data.city || city, weather.data.condition, temperature, aqi].filter(Boolean).join(" · ");
+  return {
+    city: weather.data.city || city,
+    condition: weather.data.condition || "天气",
+    temperature: weather.data.temperature === null ? "--" : `${weather.data.temperature}°C`
+  };
 }
 
 function Field({ label, children }) {
@@ -259,6 +234,108 @@ function Toggle({ label, checked, onChange }) {
   );
 }
 
+function LineIcon({ name }) {
+  const common = {
+    viewBox: "0 0 48 48",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2.8",
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": "true"
+  };
+
+  if (name === "calendar") {
+    return (
+      <svg {...common}>
+        <rect x="9" y="11" width="30" height="29" rx="4" />
+        <path d="M15 7v9M33 7v9M9 20h30" />
+        <path d="M16 27h3M23 27h3M30 27h3M16 34h3M23 34h3M30 34h3" />
+      </svg>
+    );
+  }
+
+  if (name === "weather") {
+    return (
+      <svg {...common}>
+        <path d="M31 18a9 9 0 0 0-17.4 3.2A8.5 8.5 0 0 0 15 38h21a7 7 0 0 0 1.1-13.9A9 9 0 0 0 31 18Z" />
+        <path d="M33 9v4M42 18h-4M38.8 11.2 36 14M23 10l1.6 3.5" />
+      </svg>
+    );
+  }
+
+  if (name === "coin") {
+    return (
+      <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" className="coin-glyph">
+        <circle cx="24" cy="24" r="17" />
+        <text x="24" y="31" textAnchor="middle">￥</text>
+      </svg>
+    );
+  }
+
+  if (name === "hide-money") {
+    return (
+      <svg {...common}>
+        <path d="M5 24s7-11 19-11 19 11 19 11-7 11-19 11S5 24 5 24Z" />
+        <circle cx="24" cy="24" r="5" />
+        <path d="M9 39 39 9" />
+      </svg>
+    );
+  }
+
+  if (name === "wallet") {
+    return (
+      <svg {...common}>
+        <path d="M10 18h27a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4h23" />
+        <path d="m13 15 17-8 4 8M34 27h7v8h-7a4 4 0 0 1 0-8Z" />
+      </svg>
+    );
+  }
+
+  if (name === "cup") {
+    return (
+      <svg {...common}>
+        <path d="M12 21h21v9a9 9 0 0 1-9 9h-3a9 9 0 0 1-9-9v-9Z" />
+        <path d="M33 24h3a5 5 0 0 1 0 10h-4M15 16c-2-3 3-4 1-7M24 16c-2-3 3-4 1-7M31 16c-2-3 3-4 1-7M9 39h29" />
+      </svg>
+    );
+  }
+
+  if (name === "pie") {
+    return (
+      <svg {...common}>
+        <path d="M24 8v17h16A16 16 0 1 1 24 8Z" />
+        <path d="M29 7.8A16 16 0 0 1 40.2 20H29V7.8Z" />
+      </svg>
+    );
+  }
+
+  if (name === "flower") {
+    return (
+      <svg {...common}>
+        <path d="M24 26c5 0 9-4 9-9-5 0-9 4-9 9Zm0 0c-5 0-9-4-9-9 5 0 9 4 9 9Zm0 0v14" />
+        <path d="M14 40h20M19 34c-4 0-7-3-7-7 4 0 7 3 7 7Zm10 0c4 0 7-3 7-7-4 0-7 3-7 7Z" />
+      </svg>
+    );
+  }
+
+  if (name === "record") {
+    return (
+      <svg {...common}>
+        <path d="M12 8h20l6 6v26H12V8Z" />
+        <path d="M31 8v7h7M18 22h14M18 29h14M18 36h8M31 36l8-8 3 3-8 8-5 2 2-5Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...common}>
+      <circle cx="24" cy="24" r="6" />
+      <path d="M24 5v7M24 36v7M5 24h7M36 24h7M10.6 10.6l5 5M32.4 32.4l5 5M37.4 10.6l-5 5M15.6 32.4l-5 5" />
+    </svg>
+  );
+}
+
 function SettingsPanel({ config, version, onClose, onPatch }) {
   return (
     <section className="settings-panel" aria-label="设置面板">
@@ -372,12 +449,25 @@ function SettingsPanel({ config, version, onClose, onPatch }) {
   );
 }
 
+function TimeFace({ value }) {
+  return (
+    <strong className="time-face" aria-label={`当前时间 ${value}`}>
+      {value.split("").map((char, index) => (
+        <span className={char === ":" ? "time-colon" : ""} key={`${char}-${index}`}>
+          {char}
+        </span>
+      ))}
+    </strong>
+  );
+}
+
 export function App() {
   const [now, setNow] = useState(new Date());
   const [config, setConfig] = useState(fallbackConfig);
   const [version, setVersion] = useState("0.1.0");
   const [resolvedTheme, setResolvedTheme] = useState("dark");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [collapseEdge, setCollapseEdge] = useState("right");
   const [weather, setWeather] = useState({ status: "loading", data: null, error: null });
@@ -453,13 +543,31 @@ export function App() {
   }, [config.city]);
 
   const wage = useMemo(() => calculateWage(now, config), [now, config]);
-  const weatherText = weatherSummary(config.city, weather);
+  const date = dateParts(now);
+  const weatherInfo = weatherParts(config.city, weather);
+  const remainingDays = Math.max(0, Math.ceil(wage.monthlyWorkdays - wage.completedDays - wage.dayProgress));
 
   function patchConfig(patch) {
     const next = { ...config, ...patch };
     setConfig(next);
+    if (patch.themeMode) {
+      const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
+      setResolvedTheme(
+        patch.themeMode === "system"
+          ? (prefersDark ? "dark" : "light")
+          : patch.themeMode
+      );
+    }
     window.wageApp?.updateConfig(patch);
   }
+
+  const navItems = [
+    { icon: "hide-money", label: "隐藏金额", onClick: () => patchConfig({ privacyMode: !config.privacyMode }) },
+    { icon: "pie", label: "统计" },
+    { icon: "flower", label: "目标" },
+    { icon: "record", label: "记录" },
+    { icon: "settings", label: "设置", onClick: () => setSettingsOpen(true) }
+  ];
 
   if (collapsed) {
     return (
@@ -478,118 +586,133 @@ export function App() {
       onMouseEnter={() => window.wageApp?.setPointerInside(true)}
       onMouseLeave={() => window.wageApp?.setPointerInside(false)}
     >
-      <div className="drag-strip">
-        <GripHorizontal size={18} />
-      </div>
-      <div className="window-actions">
-        <button
-          className="window-button"
-          type="button"
-          onClick={() => window.wageApp?.minimizeWindow()}
-          aria-label="收起到屏幕边缘"
-          title="收起到边缘"
-        >
-          <Minus size={15} />
-        </button>
-        <button
-          className="window-button"
-          type="button"
-          onClick={() => window.wageApp?.closeWindowToTray()}
-          aria-label="关闭到系统托盘"
-          title="关闭"
-        >
-          <X size={15} />
-        </button>
-      </div>
-
-      <header className="top-row">
-        <div>
-          <p>{formatDate(now)}</p>
-          <span>{weatherText}</span>
+      <header className="brand-bar">
+        <div className="brand-left">
+          <span className="stamp-mark">打<br />工<br />人</span>
+          <strong>WAGE SLAVE</strong>
         </div>
-        <CloudSun size={30} />
+        <div className="drag-dots" aria-hidden="true">
+          {Array.from({ length: 20 }, (_, index) => <i key={index} />)}
+        </div>
+        <div className="window-actions">
+          <button
+            className="window-button"
+            type="button"
+            onClick={() => window.wageApp?.minimizeWindow()}
+            aria-label="收起到屏幕边缘"
+            title="收起到边缘"
+          >
+            <span />
+          </button>
+          <button
+            className="window-button close"
+            type="button"
+            onClick={() => window.wageApp?.closeWindowToTray()}
+            aria-label="关闭到系统托盘"
+            title="关闭"
+          >
+            <span />
+          </button>
+        </div>
       </header>
 
-      <section className="time-block">
-        <span>当前时间</span>
-        <strong>{formatTime(now)}</strong>
+      <section className="info-strip">
+        <div className="info-cell date-cell">
+          <LineIcon name="calendar" />
+          <div>
+            <span>日期</span>
+            <strong>{date.date}</strong>
+            <em>{date.weekday}</em>
+          </div>
+        </div>
+        <div className="info-cell weather-cell">
+          <div>
+            <span>天气</span>
+            <strong>{weatherInfo.condition}</strong>
+            <em>{weatherInfo.temperature}</em>
+          </div>
+          <LineIcon name="weather" />
+        </div>
       </section>
 
-      <section className="earned-block">
-        <span>今日已赚工薪</span>
-        <strong>{formatMoney(wage.todayEarned, config.privacyMode)}</strong>
-        <p>
-          {config.salaryMode === "monthly" ? "按月薪折算" : "按日薪计算"}
-          {" · "}
-          {wage.isWorkday ? "工作日实时增长" : "今日非工作日"}
-        </p>
+      <section className="time-section">
+        <div className="ornament-title"><span>当前时间</span></div>
+        <TimeFace value={formatTime(now)} />
+        <span className="seal-note">自律<br />即自由</span>
       </section>
 
-      <section className="progress-block">
-        <div>
+      <section className="earned-section">
+        <div className="ornament-title plain"><span>今日已赚工资</span></div>
+        <div className="money-row">
+          <LineIcon name="coin" />
+          <strong>{formatMoney(wage.todayEarned, config.privacyMode).replace("¥", "")}</strong>
+        </div>
+      </section>
+
+      <section className="progress-section">
+        <div className="progress-head">
           <span>今日工时进度</span>
-          <strong>{Math.round(wage.dayProgress * 100)}%</strong>
+          <strong>{wage.elapsedHours.toFixed(1)} / {wage.totalHours.toFixed(1)} 小时</strong>
         </div>
         <div className="progress-track">
           <i style={{ width: `${wage.dayProgress * 100}%` }} />
+          <b style={{ left: `${Math.min(100, Math.max(0, wage.dayProgress * 100))}%` }} />
         </div>
-        <p>
-          已过 {wage.elapsedHours.toFixed(1)}h / 总计 {wage.totalHours.toFixed(1)}h
-        </p>
+        <div className="progress-scale">
+          <span>0</span>
+          <span>{(wage.totalHours / 2).toFixed(wage.totalHours % 2 ? 1 : 0)}</span>
+          <span>{wage.totalHours.toFixed(wage.totalHours % 1 ? 1 : 0)}</span>
+        </div>
       </section>
 
-      <section className="stat-grid">
+      <section className="month-section">
         <article>
-          <div className="stat-title">
-            <CalendarDays size={16} />
+          <LineIcon name="wallet" />
+          <div>
             <span>本月已赚</span>
+            <strong>{formatMoney(wage.monthEarned, config.privacyMode).replace("¥", "")}</strong>
+            <em>目标 {formatMoney(config.monthlySalary, config.privacyMode).replace("¥", "")}</em>
           </div>
-          <strong>{formatMoney(wage.monthEarned, config.privacyMode)}</strong>
         </article>
         <article>
-          <div className="stat-title">
-            <ChevronRight size={16} />
+          <LineIcon name="calendar" />
+          <div>
             <span>本月已过</span>
+            <strong>{wage.monthDayLabel}</strong>
+            <em>剩余 {remainingDays} 天</em>
           </div>
-          <strong>{wage.monthDayLabel}</strong>
         </article>
       </section>
 
-      <footer className="status-row">
+      <aside
+        className={`side-nav ${navOpen ? "is-open" : ""}`}
+        aria-label="功能区"
+      >
+        <button
+          className="nav-toggle"
+          type="button"
+          onClick={() => setNavOpen((next) => !next)}
+          aria-label={navOpen ? "收起功能区" : "展开功能区"}
+          aria-expanded={navOpen}
+        >
+          <span />
+        </button>
+        <p>专注当下<br />认真生活</p>
         <div>
-          <span className="live-dot" />
-          <span>
-            v{version} · <ThemeIcon mode={config.themeMode} /> {themeLabel(config.themeMode)}
-          </span>
+          {navItems.map((item) => (
+            <button
+              className={item.label === "设置" || (item.label === "隐藏金额" && config.privacyMode) ? "is-active" : ""}
+              type="button"
+              key={item.label}
+              onClick={item.onClick}
+              aria-label={item.label}
+            >
+              <LineIcon name={item.icon} />
+              <span>{item.label}</span>
+            </button>
+          ))}
         </div>
-        <div className="footer-actions">
-          <button
-            className="icon-button"
-            type="button"
-            onClick={() => patchConfig({ privacyMode: !config.privacyMode })}
-            aria-label="切换隐私金额"
-          >
-            {config.privacyMode ? <EyeOff size={17} /> : <Eye size={17} />}
-          </button>
-          <button
-            className={`icon-button ${config.alwaysOnTop ? "is-active" : ""}`}
-            type="button"
-            onClick={() => patchConfig({ alwaysOnTop: !config.alwaysOnTop })}
-            aria-label={config.alwaysOnTop ? "取消窗口置顶" : "窗口置顶"}
-            title={config.alwaysOnTop ? "取消置顶" : "窗口置顶"}
-          >
-            <Pin size={17} />
-          </button>
-          <button
-            className="icon-button"
-            type="button"
-            onClick={() => setSettingsOpen(true)}
-            aria-label="打开设置"
-          >
-            <Settings size={17} />
-          </button>
-        </div>
-      </footer>
+      </aside>
 
       {settingsOpen ? (
         <SettingsPanel
