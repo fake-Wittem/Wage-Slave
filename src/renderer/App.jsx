@@ -9,7 +9,7 @@ import featureStatsIcon from "../assets/feature-stats.png";
 import infoDateIcon from "../assets/info-date.png";
 import infoMonthEarnedIcon from "../assets/info-month-earned.png";
 import infoMonthPassedIcon from "../assets/info-month-passed.png";
-import sealMottoIcon from "../assets/seal-motto.png";
+import sealMottoIcon from "../assets/seal-motto-generated.png";
 import infoTodayEarnedIcon from "../assets/info-today-earned.png";
 import infoWeatherIcon from "../assets/info-weather.png";
 import { calculateWage, formatMoney, formatTime } from "./salary.js";

@@ -483,7 +483,9 @@ button {
   width: 46px;
   height: 46px;
   object-fit: contain;
-  filter: drop-shadow(0 0 7px rgba(196, 75, 49, 0.28));
+  filter:
+    drop-shadow(0 0 7px rgba(196, 75, 49, 0.3))
+    saturate(1.08);
   pointer-events: none;
 }
 
