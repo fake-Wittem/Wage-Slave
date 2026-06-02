@@ -9,6 +9,8 @@ import featureStatsIcon from "../assets/feature-stats.png";
 import infoDateIcon from "../assets/info-date.png";
 import infoMonthEarnedIcon from "../assets/info-month-earned.png";
 import infoMonthPassedIcon from "../assets/info-month-passed.png";
+import sealMottoIcon from "../assets/seal-motto.png";
+import infoTodayEarnedIcon from "../assets/info-today-earned.png";
 import infoWeatherIcon from "../assets/info-weather.png";
 import { calculateWage, formatMoney, formatTime } from "./salary.js";
 
@@ -721,13 +723,13 @@ export function App() {
       <section className="time-section">
         <div className="ornament-title"><span>当前时间</span></div>
         <TimeFace value={formatTime(now)} />
-        <span className="seal-note">自律<br />即自由</span>
+        <img className="seal-note" src={sealMottoIcon} alt="" aria-hidden="true" />
       </section>
 
       <section className="earned-section">
         <div className="ornament-title plain"><span>今日已赚工资</span></div>
         <div className="money-row">
-          <LineIcon name="coin" />
+          <img className="money-icon" src={infoTodayEarnedIcon} alt="" aria-hidden="true" />
           <strong>{formatMoney(wage.todayEarned, config.privacyMode).replace("¥", "")}</strong>
         </div>
       </section>

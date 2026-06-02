@@ -134,15 +134,6 @@ button {
   pointer-events: none;
 }
 
-.widget-shell::after {
-  position: absolute;
-  inset: 13px;
-  border: 1px solid rgba(0, 0, 0, 0.72);
-  border-radius: 12px;
-  content: "";
-  pointer-events: none;
-}
-
 .widget-shell > * {
   position: relative;
   z-index: 1;
@@ -486,19 +477,14 @@ button {
 
 .seal-note {
   position: absolute;
-  right: 27px;
-  bottom: 17px;
-  display: grid;
-  width: 40px;
-  height: 40px;
-  place-items: center;
-  border: 1px solid rgba(196, 75, 49, 0.68);
-  border-radius: 4px;
-  color: var(--cinnabar);
-  font-size: 12px;
-  font-weight: 800;
-  line-height: 1.2;
-  text-align: center;
+  right: 25px;
+  bottom: 14px;
+  display: block;
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 7px rgba(196, 75, 49, 0.28));
+  pointer-events: none;
 }
 
 .earned-section {
@@ -522,6 +508,16 @@ button {
   color: var(--brass);
   fill: rgba(181, 106, 53, 0.16);
   filter: drop-shadow(0 0 8px rgba(181, 106, 53, 0.24));
+}
+
+.money-icon {
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(181, 106, 53, 0.28));
+  pointer-events: none;
 }
 
 .coin-glyph {
@@ -903,7 +899,10 @@ button {
   position: absolute;
   inset: 15px;
   z-index: 5;
+  display: flex;
+  flex-direction: column;
   padding: 16px;
+  overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: 12px;
   background:
@@ -914,6 +913,11 @@ button {
     inset 0 0 0 1px rgba(255, 223, 166, 0.05),
     0 16px 36px var(--shadow);
   -webkit-app-region: no-drag;
+}
+
+.settings-panel::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 :root[data-theme="light"] .widget-shell {
@@ -973,13 +977,14 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
+  flex: 0 0 auto;
 }
 
 .settings-head strong {
   display: block;
   color: var(--text-strong);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 850;
 }
 
@@ -993,20 +998,21 @@ button {
 .settings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
+  flex: 0 0 auto;
 }
 
 .field {
   position: relative;
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .field input,
 .control-button {
   width: 100%;
   min-width: 0;
-  height: 34px;
+  height: 30px;
   padding: 0 30px 0 10px;
   border: 1px solid var(--line-soft);
   border-radius: 7px;
@@ -1206,15 +1212,16 @@ button {
 
 .toggle-list {
   display: grid;
-  margin-top: 16px;
-  gap: 9px;
+  margin-top: 10px;
+  gap: 6px;
+  flex: 0 0 auto;
 }
 
 .toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 34px;
+  height: 30px;
   border: 0;
   background: transparent;
   color: var(--text-strong);
@@ -1253,9 +1260,10 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  margin-top: 14px;
-  padding: 10px;
-  gap: 10px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  gap: 8px;
+  flex: 0 0 auto;
   border: 1px solid var(--line-soft);
   border-radius: 8px;
   background: rgba(255, 235, 190, 0.04);
@@ -1295,7 +1303,7 @@ button {
   align-items: center;
   justify-content: center;
   min-width: 86px;
-  height: 32px;
+  height: 30px;
   padding: 0 10px;
   gap: 5px;
   border: 1px solid var(--line-soft);
