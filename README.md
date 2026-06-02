@@ -61,6 +61,20 @@ npm run build
 npm start
 ```
 
+## 自动更新
+
+应用使用 `electron-updater` + `electron-builder` 的 GitHub Releases provider 检测更新，发布仓库为 `fake-Wittem/Wage-Slave`。`npm run dist:github` 会把安装包和更新元数据上传到 GitHub draft Release；确认无误后手动 Publish Release，已安装客户端才会检测到新版本。
+
+发布新版本时：
+
+1. 更新 `package.json` 里的 `version`，并同步维护 `CHANGELOG.md`。
+2. 清理 `release` 目录里旧的 `Wage Slave Setup *.exe` 和匹配的 `.blockmap` 文件。
+3. 设置具备仓库 Release 权限的 `GH_TOKEN` 环境变量。
+4. 运行 `npm run dist:github` 创建/更新 draft Release。
+5. 在 GitHub Releases 页面检查 `latest.yml`、`Wage Slave Setup x.y.z.exe` 和对应 `.blockmap` 后发布 Release。
+
+打包后的应用会在启动 30 秒后自动检查一次更新，也可以在设置面板或托盘菜单中手动检查。更新下载完成后，用户可以选择重启安装。
+
 ## 项目结构
 
 ```text

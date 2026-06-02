@@ -3,6 +3,9 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("wageApp", {
   getInitialState: () => ipcRenderer.invoke("app:get-initial-state"),
   updateConfig: (patch) => ipcRenderer.invoke("app:update-config", patch),
+  getUpdateState: () => ipcRenderer.invoke("app:get-update-state"),
+  checkForUpdates: () => ipcRenderer.invoke("app:check-for-updates"),
+  installUpdate: () => ipcRenderer.invoke("app:install-update"),
   getWeather: (city) => ipcRenderer.invoke("weather:get", city),
   collapseWindow: (edge) => ipcRenderer.invoke("window:collapse", edge),
   expandWindow: (options) => ipcRenderer.invoke("window:expand", options),
@@ -14,6 +17,9 @@ contextBridge.exposeInMainWorld("wageApp", {
   },
   onThemeUpdated: (handler) => {
     ipcRenderer.on("theme-updated", (_event, theme) => handler(theme));
+  },
+  onUpdateStatus: (handler) => {
+    ipcRenderer.on("update-status", (_event, payload) => handler(payload));
   },
   onWindowCollapsed: (handler) => {
     ipcRenderer.on("window-collapsed", (_event, payload) => handler(payload));

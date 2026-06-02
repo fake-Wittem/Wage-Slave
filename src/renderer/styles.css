@@ -1195,6 +1195,88 @@ button {
   transform: translateX(20px);
 }
 
+.update-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  margin-top: 14px;
+  padding: 10px;
+  gap: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: rgba(255, 235, 190, 0.04);
+}
+
+.update-card.is-ready {
+  border-color: rgba(111, 143, 96, 0.55);
+  background: rgba(111, 143, 96, 0.12);
+}
+
+.update-card.is-error {
+  border-color: rgba(196, 75, 49, 0.58);
+  background: rgba(196, 75, 49, 0.1);
+}
+
+.update-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.update-card strong {
+  display: block;
+  max-width: 100%;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--text-strong);
+  font-size: 12px;
+  font-weight: 780;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.update-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 86px;
+  height: 32px;
+  padding: 0 10px;
+  gap: 5px;
+  border: 1px solid var(--line-soft);
+  border-radius: 7px;
+  color: var(--text-strong);
+  background: rgba(181, 106, 53, 0.14);
+  cursor: pointer;
+}
+
+.update-action:hover:not(:disabled) {
+  border-color: var(--brass);
+  color: var(--copper-bright);
+}
+
+.update-action:disabled {
+  cursor: default;
+  opacity: 0.68;
+}
+
+.update-action span {
+  color: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.update-action .is-spinning {
+  animation: update-spin 900ms linear infinite;
+}
+
+@keyframes update-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .icon-button {
   display: inline-grid;
   width: 30px;
@@ -1231,5 +1313,9 @@ button {
   .progress-track i,
   .toggle i::after {
     transition: none;
+  }
+
+  .update-action .is-spinning {
+    animation: none;
   }
 }

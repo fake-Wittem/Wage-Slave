@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, X } from "lucide-react";
+import { Check, ChevronDown, Download, RefreshCw, X } from "lucide-react";
 import { calculateWage, formatMoney, formatTime } from "./salary.js";
 
 const fallbackConfig = {
@@ -336,7 +336,39 @@ function LineIcon({ name }) {
   );
 }
 
-function SettingsPanel({ config, version, onClose, onPatch }) {
+function updateStatusText(updateState) {
+  const versionText = updateState?.latestVersion ? ` v${updateState.latestVersion}` : "";
+
+  if (updateState?.status === "checking") {
+    return "正在检查更新";
+  }
+  if (updateState?.status === "available") {
+    return `发现新版本${versionText}，正在下载`;
+  }
+  if (updateState?.status === "downloading") {
+    const percent = Number(updateState?.progress?.percent);
+    return Number.isFinite(percent) ? `正在下载 ${Math.round(percent)}%` : "正在下载更新";
+  }
+  if (updateState?.status === "downloaded") {
+    return `新版本${versionText}已下载`;
+  }
+  if (updateState?.status === "installing") {
+    return "正在重启安装";
+  }
+  if (updateState?.status === "not-available") {
+    return "已是最新版本";
+  }
+  if (updateState?.status === "error") {
+    return updateState?.error || "更新检查失败";
+  }
+
+  return updateState?.message || "可手动检查新版本";
+}
+
+function SettingsPanel({ config, version, updateState, onClose, onPatch, onCheckForUpdates, onInstallUpdate }) {
+  const updateBusy = updateState?.status === "checking" || updateState?.status === "downloading" || updateState?.status === "installing";
+  const updateReady = updateState?.status === "downloaded";
+
   return (
     <section className="settings-panel" aria-label="设置面板">
       <div className="settings-head">
@@ -445,6 +477,22 @@ function SettingsPanel({ config, version, onClose, onPatch }) {
         <Toggle label="靠边收起" checked={config.edgeCollapseEnabled} onChange={(value) => onPatch({ edgeCollapseEnabled: value })} />
         <Toggle label="隐私金额" checked={config.privacyMode} onChange={(value) => onPatch({ privacyMode: value })} />
       </div>
+
+      <div className={`update-card ${updateReady ? "is-ready" : ""} ${updateState?.status === "error" ? "is-error" : ""}`}>
+        <div>
+          <span>软件更新</span>
+          <strong>{updateStatusText(updateState)}</strong>
+        </div>
+        <button
+          className="update-action"
+          type="button"
+          disabled={updateBusy}
+          onClick={updateReady ? onInstallUpdate : onCheckForUpdates}
+        >
+          {updateReady ? <Download size={15} /> : <RefreshCw size={15} className={updateBusy ? "is-spinning" : ""} />}
+          <span>{updateReady ? "重启安装" : "检查更新"}</span>
+        </button>
+      </div>
     </section>
   );
 }
@@ -471,6 +519,7 @@ export function App() {
   const [collapsed, setCollapsed] = useState(false);
   const [collapseEdge, setCollapseEdge] = useState("right");
   const [weather, setWeather] = useState({ status: "loading", data: null, error: null });
+  const [updateState, setUpdateState] = useState({ status: "idle", message: null });
 
   useEffect(() => {
     window.wageApp?.getInitialState().then((state) => {
@@ -478,12 +527,14 @@ export function App() {
       setVersion(state.version);
       setResolvedTheme(state.resolvedTheme);
     });
+    window.wageApp?.getUpdateState?.().then(setUpdateState);
 
     window.wageApp?.onConfigUpdated(({ config: nextConfig, resolvedTheme: nextTheme }) => {
       setConfig({ ...fallbackConfig, ...nextConfig });
       setResolvedTheme(nextTheme);
     });
     window.wageApp?.onThemeUpdated(setResolvedTheme);
+    window.wageApp?.onUpdateStatus?.(setUpdateState);
     window.wageApp?.onWindowCollapsed(({ edge }) => {
       setCollapseEdge(edge);
       setCollapsed(true);
@@ -559,6 +610,20 @@ export function App() {
       );
     }
     window.wageApp?.updateConfig(patch);
+  }
+
+  async function checkForUpdates() {
+    const nextState = await window.wageApp?.checkForUpdates?.();
+    if (nextState) {
+      setUpdateState(nextState);
+    }
+  }
+
+  async function installUpdate() {
+    const nextState = await window.wageApp?.installUpdate?.();
+    if (nextState) {
+      setUpdateState(nextState);
+    }
   }
 
   const navItems = [
@@ -718,8 +783,11 @@ export function App() {
         <SettingsPanel
           config={config}
           version={version}
+          updateState={updateState}
           onClose={() => setSettingsOpen(false)}
           onPatch={patchConfig}
+          onCheckForUpdates={checkForUpdates}
+          onInstallUpdate={installUpdate}
         />
       ) : null}
     </main>

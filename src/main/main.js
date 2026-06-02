@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, nativeTheme, screen, Tray, Menu, nativeImage } = require("electron");
+const { autoUpdater } = require("electron-updater");
 const { execFile } = require("child_process");
 const fs = require("fs");
 const path = require("path");
@@ -59,6 +60,18 @@ let weatherCache = {
   fetchedAt: 0,
   data: null
 };
+let updateState = {
+  status: "idle",
+  currentVersion: app.getVersion(),
+  latestVersion: null,
+  progress: null,
+  checkedAt: null,
+  error: null,
+  message: null
+};
+let updateCheckInFlight = false;
+let updateEventsBound = false;
+let quittingForUpdate = false;
 
 function configPath() {
   return path.join(app.getPath("userData"), "config.json");
@@ -76,6 +89,169 @@ function readConfig() {
 function saveConfig() {
   fs.mkdirSync(app.getPath("userData"), { recursive: true });
   fs.writeFileSync(configPath(), JSON.stringify(config, null, 2), "utf8");
+}
+
+function normalizeUpdateInfo(info) {
+  return {
+    version: info?.version || null,
+    releaseName: info?.releaseName || null,
+    releaseDate: info?.releaseDate || null
+  };
+}
+
+function setUpdateState(patch) {
+  updateState = {
+    ...updateState,
+    ...patch,
+    currentVersion: app.getVersion()
+  };
+  mainWindow?.webContents.send("update-status", updateState);
+  return updateState;
+}
+
+function setupAutoUpdater() {
+  if (updateEventsBound) {
+    return;
+  }
+
+  updateEventsBound = true;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on("checking-for-update", () => {
+    updateCheckInFlight = true;
+    setUpdateState({
+      status: "checking",
+      progress: null,
+      error: null,
+      message: "Checking for updates..."
+    });
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    const updateInfo = normalizeUpdateInfo(info);
+    setUpdateState({
+      status: "available",
+      latestVersion: updateInfo.version,
+      progress: null,
+      error: null,
+      message: updateInfo.version ? `Version ${updateInfo.version} is available.` : "Update available."
+    });
+  });
+
+  autoUpdater.on("update-not-available", (info) => {
+    updateCheckInFlight = false;
+    const updateInfo = normalizeUpdateInfo(info);
+    setUpdateState({
+      status: "not-available",
+      latestVersion: updateInfo.version || app.getVersion(),
+      progress: null,
+      checkedAt: new Date().toISOString(),
+      error: null,
+      message: "Already on the latest version."
+    });
+  });
+
+  autoUpdater.on("download-progress", (progress) => {
+    setUpdateState({
+      status: "downloading",
+      progress: {
+        percent: Number.isFinite(progress?.percent) ? progress.percent : null,
+        bytesPerSecond: progress?.bytesPerSecond || null,
+        transferred: progress?.transferred || null,
+        total: progress?.total || null
+      },
+      error: null,
+      message: "Downloading update..."
+    });
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    updateCheckInFlight = false;
+    const updateInfo = normalizeUpdateInfo(info);
+    setUpdateState({
+      status: "downloaded",
+      latestVersion: updateInfo.version || updateState.latestVersion,
+      progress: { percent: 100 },
+      checkedAt: new Date().toISOString(),
+      error: null,
+      message: "Update downloaded. Restart to install."
+    });
+  });
+
+  autoUpdater.on("error", (error) => {
+    updateCheckInFlight = false;
+    setUpdateState({
+      status: "error",
+      progress: null,
+      checkedAt: new Date().toISOString(),
+      error: error?.message || String(error),
+      message: "Update check failed."
+    });
+  });
+
+  autoUpdater.on("before-quit-for-update", () => {
+    quittingForUpdate = true;
+  });
+}
+
+async function checkForUpdates() {
+  if (!app.isPackaged) {
+    return setUpdateState({
+      status: "idle",
+      error: null,
+      message: "Update checks are available after packaging."
+    });
+  }
+
+  if (updateCheckInFlight || updateState.status === "downloading") {
+    return updateState;
+  }
+
+  setupAutoUpdater();
+  updateCheckInFlight = true;
+
+  try {
+    await autoUpdater.checkForUpdates();
+  } catch (error) {
+    updateCheckInFlight = false;
+    return setUpdateState({
+      status: "error",
+      progress: null,
+      checkedAt: new Date().toISOString(),
+      error: error?.message || String(error),
+      message: "Update check failed."
+    });
+  }
+
+  return updateState;
+}
+
+function installDownloadedUpdate() {
+  if (updateState.status !== "downloaded") {
+    return updateState;
+  }
+
+  setImmediate(() => {
+    quittingForUpdate = true;
+    autoUpdater.quitAndInstall(false, true);
+  });
+  return setUpdateState({
+    status: "installing",
+    message: "Restarting to install update..."
+  });
+}
+
+function scheduleStartupUpdateCheck() {
+  if (!app.isPackaged) {
+    return;
+  }
+
+  setTimeout(() => {
+    checkForUpdates().catch((error) => {
+      console.warn("Startup update check failed:", error?.message || error);
+    });
+  }, 30 * 1000);
 }
 
 function getResolvedTheme() {
@@ -436,6 +612,10 @@ function createTray() {
       enabled: false
     },
     {
+      label: "检查更新",
+      click: () => checkForUpdates()
+    },
+    {
       label: "退出",
       click: () => app.quit()
     }
@@ -718,6 +898,9 @@ ipcMain.handle("app:update-config", (_event, patch) => {
 });
 
 ipcMain.handle("weather:get", (_event, city) => getWeather(city));
+ipcMain.handle("app:get-update-state", () => updateState);
+ipcMain.handle("app:check-for-updates", () => checkForUpdates());
+ipcMain.handle("app:install-update", () => installDownloadedUpdate());
 ipcMain.handle("window:collapse", (_event, edge) => collapseWindow(edge, true));
 ipcMain.handle("window:expand", (_event, options) => expandWindow(options));
 ipcMain.handle("window:minimize", () => minimizeWindow());
@@ -737,9 +920,11 @@ nativeTheme.on("updated", () => {
 
 app.whenReady().then(() => {
   app.setAppUserModelId("wage-slave");
+  setupAutoUpdater();
   readConfig();
   createWindow();
   createTray();
+  scheduleStartupUpdateCheck();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -749,6 +934,10 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", (event) => {
+  if (quittingForUpdate) {
+    return;
+  }
+
   event.preventDefault();
   mainWindow?.hide();
 });
