@@ -21,6 +21,8 @@
   --line: rgba(181, 106, 53, 0.56);
   --line-soft: rgba(181, 106, 53, 0.28);
   --shadow: rgba(0, 0, 0, 0.58);
+  --shell-bg-overlay: linear-gradient(180deg, rgba(17, 16, 13, 0.5), rgba(17, 16, 13, 0.68));
+  --shell-bg-image: url("../assets/background-dark.png");
   --grain:
     radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px),
     radial-gradient(circle at 78% 32%, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px),
@@ -46,6 +48,8 @@
   --line: rgba(169, 94, 46, 0.52);
   --line-soft: rgba(118, 68, 35, 0.22);
   --shadow: rgba(63, 38, 18, 0.24);
+  --shell-bg-overlay: linear-gradient(180deg, rgba(255, 246, 222, 0.42), rgba(234, 216, 180, 0.66));
+  --shell-bg-image: url("../assets/background-light.png");
   --grain:
     radial-gradient(circle at 18% 12%, rgba(96, 56, 22, 0.07) 0 1px, transparent 1px),
     radial-gradient(circle at 78% 32%, rgba(96, 56, 22, 0.045) 0 1px, transparent 1px),
@@ -105,8 +109,11 @@ button {
   background:
     var(--grain),
     radial-gradient(circle at 50% -8%, rgba(212, 135, 74, 0.14), transparent 22%),
+    var(--shell-bg-overlay),
+    var(--shell-bg-image),
     linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
-  background-size: 17px 17px, 23px 23px, 18px 18px, 18px 18px, auto, auto;
+  background-position: 0 0, 0 0, 0 0, 0 0, 50% -8%, 0 0, 0 0, 0 0;
+  background-size: 17px 17px, 23px 23px, 18px 18px, 18px 18px, auto, auto, 100% 100%, auto;
   box-shadow:
     inset 0 0 0 2px rgba(12, 8, 5, 0.96),
     inset 0 0 0 6px rgba(196, 95, 40, 0.24),
@@ -157,6 +164,15 @@ button {
   align-items: flex-end;
   gap: 10px;
   margin-top: 11px;
+}
+
+.brand-logo {
+  display: block;
+  width: 38px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(196, 75, 49, 0.24));
+  pointer-events: none;
 }
 
 .stamp-mark {
@@ -289,6 +305,16 @@ button {
   flex: 0 0 auto;
   color: var(--muted);
   filter: drop-shadow(0 0 5px rgba(200, 162, 91, 0.18));
+}
+
+.info-cell .info-icon {
+  display: block;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(181, 106, 53, 0.24));
+  pointer-events: none;
 }
 
 .info-cell span,
@@ -637,6 +663,16 @@ button {
   color: var(--copper);
 }
 
+.month-section .info-icon {
+  display: block;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(181, 106, 53, 0.22));
+  pointer-events: none;
+}
+
 .month-section article:nth-child(2) svg {
   color: var(--moss);
 }
@@ -822,6 +858,20 @@ button {
   justify-self: center;
 }
 
+.feature-icon {
+  display: block;
+  width: 29px;
+  height: 29px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(181, 106, 53, 0.26));
+  pointer-events: none;
+}
+
+.side-nav:not(:hover):not(:focus-within):not(.is-open) .feature-icon {
+  grid-column: 1;
+  justify-self: center;
+}
+
 .side-nav button:not(.nav-toggle) span {
   width: 66px;
   overflow: hidden;
@@ -870,7 +920,11 @@ button {
   background:
     var(--grain),
     radial-gradient(circle at 50% -8%, rgba(192, 111, 56, 0.12), transparent 24%),
+    var(--shell-bg-overlay),
+    var(--shell-bg-image),
     linear-gradient(180deg, var(--bg-soft) 0%, var(--bg) 100%);
+  background-position: 0 0, 0 0, 0 0, 0 0, 50% -8%, 0 0, 0 0, 0 0;
+  background-size: 17px 17px, 23px 23px, 18px 18px, 18px 18px, auto, auto, 100% 100%, auto;
   box-shadow:
     inset 0 0 0 2px rgba(84, 48, 20, 0.34),
     inset 0 0 0 6px rgba(169, 94, 46, 0.18),

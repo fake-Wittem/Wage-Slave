@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Download, RefreshCw, X } from "lucide-react";
+import brandLogo from "../assets/brand-logo.png";
+import featureGoalIcon from "../assets/feature-goal.png";
+import featureHideMoneyIcon from "../assets/feature-hide-money.png";
+import featureRecordIcon from "../assets/feature-record.png";
+import featureSettingsIcon from "../assets/feature-settings.png";
+import featureStatsIcon from "../assets/feature-stats.png";
+import infoDateIcon from "../assets/info-date.png";
+import infoMonthEarnedIcon from "../assets/info-month-earned.png";
+import infoMonthPassedIcon from "../assets/info-month-passed.png";
+import infoWeatherIcon from "../assets/info-weather.png";
 import { calculateWage, formatMoney, formatTime } from "./salary.js";
 
 const fallbackConfig = {
@@ -232,6 +242,14 @@ function Toggle({ label, checked, onChange }) {
       <i aria-hidden="true" />
     </button>
   );
+}
+
+function FeatureIcon({ src, label }) {
+  return <img className="feature-icon" src={src} alt="" aria-hidden="true" title={label} />;
+}
+
+function InfoIcon({ src, label }) {
+  return <img className="info-icon" src={src} alt="" aria-hidden="true" title={label} />;
 }
 
 function LineIcon({ name }) {
@@ -627,11 +645,11 @@ export function App() {
   }
 
   const navItems = [
-    { icon: "hide-money", label: "隐藏金额", onClick: () => patchConfig({ privacyMode: !config.privacyMode }) },
-    { icon: "pie", label: "统计" },
-    { icon: "flower", label: "目标" },
-    { icon: "record", label: "记录" },
-    { icon: "settings", label: "设置", onClick: () => setSettingsOpen(true) }
+    { image: featureHideMoneyIcon, label: "隐藏金额", onClick: () => patchConfig({ privacyMode: !config.privacyMode }) },
+    { image: featureStatsIcon, label: "统计" },
+    { image: featureGoalIcon, label: "目标" },
+    { image: featureRecordIcon, label: "记录" },
+    { image: featureSettingsIcon, label: "设置", onClick: () => setSettingsOpen(true) }
   ];
 
   if (collapsed) {
@@ -653,7 +671,7 @@ export function App() {
     >
       <header className="brand-bar">
         <div className="brand-left">
-          <span className="stamp-mark">打<br />工<br />人</span>
+          <img className="brand-logo" src={brandLogo} alt="" aria-hidden="true" />
           <strong>WAGE SLAVE</strong>
         </div>
         <div className="drag-dots" aria-hidden="true">
@@ -683,7 +701,7 @@ export function App() {
 
       <section className="info-strip">
         <div className="info-cell date-cell">
-          <LineIcon name="calendar" />
+          <InfoIcon src={infoDateIcon} label="日期" />
           <div>
             <span>日期</span>
             <strong>{date.date}</strong>
@@ -696,7 +714,7 @@ export function App() {
             <strong>{weatherInfo.condition}</strong>
             <em>{weatherInfo.temperature}</em>
           </div>
-          <LineIcon name="weather" />
+          <InfoIcon src={infoWeatherIcon} label="天气" />
         </div>
       </section>
 
@@ -732,7 +750,7 @@ export function App() {
 
       <section className="month-section">
         <article>
-          <LineIcon name="wallet" />
+          <InfoIcon src={infoMonthEarnedIcon} label="本月已赚" />
           <div>
             <span>本月已赚</span>
             <strong>{formatMoney(wage.monthEarned, config.privacyMode).replace("¥", "")}</strong>
@@ -740,7 +758,7 @@ export function App() {
           </div>
         </article>
         <article>
-          <LineIcon name="calendar" />
+          <InfoIcon src={infoMonthPassedIcon} label="本月已过" />
           <div>
             <span>本月已过</span>
             <strong>{wage.monthDayLabel}</strong>
@@ -772,7 +790,7 @@ export function App() {
               onClick={item.onClick}
               aria-label={item.label}
             >
-              <LineIcon name={item.icon} />
+              {item.image ? <FeatureIcon src={item.image} label={item.label} /> : <LineIcon name={item.icon} />}
               <span>{item.label}</span>
             </button>
           ))}
