@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, Download, RefreshCw, X } from "lucide-react";
 import brandLogo from "../assets/brand-logo.png";
+import controlCheckIcon from "../assets/control-check.png";
+import controlChevronDownIcon from "../assets/control-chevron-down.png";
+import controlCloseIcon from "../assets/control-close.png";
+import controlDragDotsIcon from "../assets/control-drag-dots.png";
+import controlDownloadIcon from "../assets/control-download.png";
+import controlMenuIcon from "../assets/control-menu.png";
+import controlMinimizeIcon from "../assets/control-minimize.png";
+import controlRefreshIcon from "../assets/control-refresh.png";
+import controlWindowCloseIcon from "../assets/control-window-close.png";
 import featureGoalIcon from "../assets/feature-goal.png";
 import featureHideMoneyIcon from "../assets/feature-hide-money.png";
 import featureRecordIcon from "../assets/feature-record.png";
@@ -89,7 +97,7 @@ function CustomSelect({ value, options, onChange, ariaLabel }) {
         onClick={() => setOpen((next) => !next)}
       >
         <span>{selected.label}</span>
-        <ChevronDown size={15} />
+        <ControlIcon src={controlChevronDownIcon} className="chevron-icon" />
       </button>
       {open ? (
         <div className="select-menu" role="listbox">
@@ -107,7 +115,7 @@ function CustomSelect({ value, options, onChange, ariaLabel }) {
               }}
             >
               <span>{option.label}</span>
-              {option.value === value ? <Check size={14} /> : null}
+              {option.value === value ? <ControlIcon src={controlCheckIcon} className="check-icon" /> : null}
             </button>
           ))}
         </div>
@@ -170,7 +178,7 @@ function TimePicker({ value, onChange, ariaLabel }) {
         <span>{hour}</span>
         <b>:</b>
         <span>{minute}</span>
-        <ChevronDown size={15} />
+        <ControlIcon src={controlChevronDownIcon} className="chevron-icon" />
       </button>
       {open ? (
         <div className="time-menu" role="dialog" aria-label={ariaLabel}>
@@ -252,6 +260,10 @@ function FeatureIcon({ src, label }) {
 
 function InfoIcon({ src, label }) {
   return <img className="info-icon" src={src} alt="" aria-hidden="true" title={label} />;
+}
+
+function ControlIcon({ src, className = "" }) {
+  return <img className={`control-icon ${className}`.trim()} src={src} alt="" aria-hidden="true" />;
 }
 
 function LineIcon({ name }) {
@@ -397,7 +409,7 @@ function SettingsPanel({ config, version, updateState, onClose, onPatch, onCheck
           <span>版本 {version}</span>
         </div>
         <button className="icon-button" type="button" onClick={onClose} aria-label="关闭设置">
-          <X size={17} />
+          <ControlIcon src={controlCloseIcon} className="close-icon" />
         </button>
       </div>
 
@@ -509,7 +521,11 @@ function SettingsPanel({ config, version, updateState, onClose, onPatch, onCheck
           disabled={updateBusy}
           onClick={updateReady ? onInstallUpdate : onCheckForUpdates}
         >
-          {updateReady ? <Download size={15} /> : <RefreshCw size={15} className={updateBusy ? "is-spinning" : ""} />}
+          {updateReady ? (
+            <ControlIcon src={controlDownloadIcon} className="download-icon" />
+          ) : (
+            <ControlIcon src={controlRefreshIcon} className={`refresh-icon ${updateBusy ? "is-spinning" : ""}`} />
+          )}
           <span>{updateReady ? "重启安装" : "检查更新"}</span>
         </button>
       </div>
@@ -677,7 +693,7 @@ export function App() {
           <strong>WAGE SLAVE</strong>
         </div>
         <div className="drag-dots" aria-hidden="true">
-          {Array.from({ length: 20 }, (_, index) => <i key={index} />)}
+          <img src={controlDragDotsIcon} alt="" aria-hidden="true" />
         </div>
         <div className="window-actions">
           <button
@@ -687,7 +703,7 @@ export function App() {
             aria-label="收起到屏幕边缘"
             title="收起到边缘"
           >
-            <span />
+            <ControlIcon src={controlMinimizeIcon} className="window-minimize-icon" />
           </button>
           <button
             className="window-button close"
@@ -696,7 +712,7 @@ export function App() {
             aria-label="关闭到系统托盘"
             title="关闭"
           >
-            <span />
+            <ControlIcon src={controlWindowCloseIcon} className="window-close-icon" />
           </button>
         </div>
       </header>
@@ -780,7 +796,7 @@ export function App() {
           aria-label={navOpen ? "收起功能区" : "展开功能区"}
           aria-expanded={navOpen}
         >
-          <span />
+          <ControlIcon src={controlMenuIcon} className="menu-icon" />
         </button>
         <p>专注当下<br />认真生活</p>
         <div>

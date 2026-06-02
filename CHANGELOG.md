@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2] - 2026-06-02
+
+### Changed
+
+- Replaced remaining SVG/CSS-drawn control icons with generated metallic PNG assets for settings controls, window controls, side navigation, and the top drag indicator.
+- Removed the unused `lucide-react` dependency after moving controls to project-local image assets.
+
 ## [0.4.0] - 2026-06-02
 
 ### Added

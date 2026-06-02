@@ -196,20 +196,20 @@ button {
   position: absolute;
   top: 5px;
   left: 50%;
-  display: grid;
+  display: block;
   width: 64px;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 3px;
+  height: 14px;
   padding-top: 0;
   transform: translateX(-50%);
 }
 
-.drag-dots i {
-  width: 4px;
-  height: 4px;
-  border-radius: 999px;
-  background: radial-gradient(circle, #edb477 0 28%, var(--copper) 58%, rgba(0, 0, 0, 0.2) 100%);
-  box-shadow: 0 0 4px rgba(212, 135, 74, 0.4);
+.drag-dots img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(212, 135, 74, 0.36));
+  pointer-events: none;
 }
 
 .window-actions {
@@ -225,41 +225,26 @@ button {
 
 .window-button {
   position: relative;
+  display: inline-flex;
   width: 22px;
   height: 22px;
+  align-items: center;
+  justify-content: center;
   border: 0;
   background: transparent;
   cursor: pointer;
 }
 
-.window-button span,
-.window-button.close span::before,
-.window-button.close span::after {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 18px;
-  height: 2px;
-  border-radius: 999px;
-  background: var(--copper-bright);
-  box-shadow: 0 0 4px rgba(212, 135, 74, 0.36);
-  content: "";
-  transform: translate(-50%, -50%);
+.window-button .control-icon {
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(0 0 5px rgba(212, 135, 74, 0.28));
+  transition: transform 140ms ease, filter 140ms ease;
 }
 
-.window-button.close span {
-  /* inset: 0; */
-  background: transparent;
-  box-shadow: none;
-  transform: none;
-}
-
-.window-button.close span::before {
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.window-button.close span::after {
-  transform: translate(-50%, -50%) rotate(-45deg);
+.window-button:hover .control-icon {
+  filter: drop-shadow(0 0 7px rgba(212, 135, 74, 0.46));
+  transform: scale(1.06);
 }
 
 .info-strip,
@@ -740,8 +725,11 @@ button {
 
 .nav-toggle {
   position: relative;
+  display: inline-flex;
   width: 34px;
   height: 28px;
+  align-items: center;
+  justify-content: center;
   justify-self: center;
   padding: 0;
   border: 0;
@@ -751,31 +739,18 @@ button {
   cursor: pointer;
 }
 
-.nav-toggle span,
-.nav-toggle span::before,
-.nav-toggle span::after {
-  position: absolute;
-  left: 50%;
-  width: 18px;
-  height: 2px;
-  border-radius: 999px;
-  background: currentColor;
-  content: "";
-  transform: translateX(-50%);
+.nav-toggle .menu-icon {
+  width: 26px;
+  height: 26px;
+  filter: drop-shadow(0 0 6px rgba(181, 106, 53, 0.3));
+  transition: transform 160ms ease, filter 160ms ease;
 }
 
-.nav-toggle span {
-  top: 13px;
+.nav-toggle:hover .menu-icon,
+.side-nav.is-open .nav-toggle .menu-icon {
+  filter: drop-shadow(0 0 8px rgba(212, 135, 74, 0.48));
+  transform: scale(1.05);
 }
-
-.nav-toggle span::before {
-  top: -6px;
-}
-
-.nav-toggle span::after {
-  top: 6px;
-}
-
 .side-nav p {
   margin: 2px 0 9px;
   color: var(--brass);
@@ -1023,6 +998,15 @@ button {
   outline: none;
 }
 
+.control-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 5px rgba(181, 106, 53, 0.28));
+  pointer-events: none;
+}
+
 .control-button {
   position: relative;
   display: flex;
@@ -1031,15 +1015,15 @@ button {
   cursor: pointer;
 }
 
-.control-button svg {
+.control-button .chevron-icon {
   position: absolute;
-  right: 10px;
-  color: var(--muted);
+  right: 7px;
+  width: 18px;
+  height: 18px;
   transition: transform 160ms ease;
 }
 
-.control-button.is-open svg {
-  color: var(--copper-bright);
+.control-button.is-open .chevron-icon {
   transform: rotate(180deg);
 }
 
@@ -1113,8 +1097,9 @@ button {
   background: rgba(181, 106, 53, 0.18);
 }
 
-.select-option svg {
-  color: var(--brass);
+.select-option .check-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .time-trigger {
@@ -1331,6 +1316,12 @@ button {
   white-space: nowrap;
 }
 
+.update-action .control-icon {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+}
+
 .update-action .is-spinning {
   animation: update-spin 900ms linear infinite;
 }
@@ -1342,9 +1333,11 @@ button {
 }
 
 .icon-button {
-  display: inline-grid;
+  display: inline-flex;
   width: 30px;
   height: 30px;
+  align-items: center;
+  justify-content: center;
   place-items: center;
   border: 1px solid var(--line-soft);
   border-radius: 8px;
@@ -1356,6 +1349,12 @@ button {
 .icon-button:hover {
   border-color: var(--line);
   color: var(--text-strong);
+}
+
+.icon-button .close-icon {
+  width: 22px;
+  height: 22px;
+  transform: translateY(0.5px);
 }
 
 .collapse-handle {
