@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import brandLogo from "../assets/brand-logo.png";
-import controlCheckIcon from "../assets/control-check.png";
-import controlChevronDownIcon from "../assets/control-chevron-down.png";
 import controlCloseIcon from "../assets/control-close.png";
 import controlDragDotsIcon from "../assets/control-drag-dots.png";
 import controlDownloadIcon from "../assets/control-download.png";
@@ -20,7 +18,9 @@ import infoMonthPassedIcon from "../assets/info-month-passed.png";
 import sealMottoIcon from "../assets/seal-motto-generated.png";
 import infoTodayEarnedIcon from "../assets/info-today-earned.png";
 import infoWeatherIcon from "../assets/info-weather.png";
+import { ControlIcon, CustomSelect, TimePicker } from "./controls.jsx";
 import { calculateWage, formatMoney, formatTime } from "./salary.js";
+import { RecordsPanel } from "./RecordsPanel.jsx";
 
 const fallbackConfig = {
   salaryMode: "monthly",
@@ -82,165 +82,6 @@ function Field({ label, children }) {
   );
 }
 
-function CustomSelect({ value, options, onChange, ariaLabel }) {
-  const [open, setOpen] = useState(false);
-  const selected = options.find((option) => option.value === value) || options[0];
-
-  return (
-    <div className="custom-select" onBlur={() => setOpen(false)}>
-      <button
-        className={`control-button ${open ? "is-open" : ""}`}
-        type="button"
-        aria-label={ariaLabel}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => setOpen((next) => !next)}
-      >
-        <span>{selected.label}</span>
-        <ControlIcon src={controlChevronDownIcon} className="chevron-icon" />
-      </button>
-      {open ? (
-        <div className="select-menu" role="listbox">
-          {options.map((option) => (
-            <button
-              className={`select-option ${option.value === value ? "is-selected" : ""}`}
-              type="button"
-              role="option"
-              aria-selected={option.value === value}
-              key={option.value}
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => {
-                onChange(option.value);
-                setOpen(false);
-              }}
-            >
-              <span>{option.label}</span>
-              {option.value === value ? <ControlIcon src={controlCheckIcon} className="check-icon" /> : null}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function TimePicker({ value, onChange, ariaLabel }) {
-  const [open, setOpen] = useState(false);
-  const hourListRef = useRef(null);
-  const minuteListRef = useRef(null);
-  const [scrollbars, setScrollbars] = useState({
-    hour: { top: 0, height: 32 },
-    minute: { top: 0, height: 32 }
-  });
-  const [hour = "00", minute = "00"] = String(value || "00:00").split(":");
-  const hours = Array.from({ length: 24 }, (_, index) => `${index}`.padStart(2, "0"));
-  const minutes = Array.from({ length: 12 }, (_, index) => `${index * 5}`.padStart(2, "0"));
-
-  function updateScrollbar(type, element) {
-    if (!element) {
-      return;
-    }
-
-    const maxScroll = Math.max(1, element.scrollHeight - element.clientHeight);
-    const height = Math.max(26, (element.clientHeight / element.scrollHeight) * element.clientHeight);
-    const top = (element.scrollTop / maxScroll) * (element.clientHeight - height);
-    setScrollbars((current) => ({
-      ...current,
-      [type]: { top, height }
-    }));
-  }
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    window.requestAnimationFrame(() => {
-      updateScrollbar("hour", hourListRef.current);
-      updateScrollbar("minute", minuteListRef.current);
-    });
-  }, [open]);
-
-  function updateTime(nextHour, nextMinute) {
-    onChange(`${nextHour}:${nextMinute}`);
-  }
-
-  return (
-    <div className="time-picker" onBlur={() => setOpen(false)}>
-      <button
-        className={`control-button time-trigger ${open ? "is-open" : ""}`}
-        type="button"
-        aria-label={ariaLabel}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => setOpen((next) => !next)}
-      >
-        <span>{hour}</span>
-        <b>:</b>
-        <span>{minute}</span>
-        <ControlIcon src={controlChevronDownIcon} className="chevron-icon" />
-      </button>
-      {open ? (
-        <div className="time-menu" role="dialog" aria-label={ariaLabel}>
-          <div className="time-column">
-            <strong>时</strong>
-            <div className="time-scroll-shell">
-              <div
-                className="time-scroll-list"
-                ref={hourListRef}
-                onScroll={(event) => updateScrollbar("hour", event.currentTarget)}
-              >
-                {hours.map((item) => (
-                  <button
-                    className={item === hour ? "is-selected" : ""}
-                    type="button"
-                    key={item}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => updateTime(item, minute)}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-              <span className="time-scrollbar" aria-hidden="true">
-                <i style={{ height: scrollbars.hour.height, transform: `translateY(${scrollbars.hour.top}px)` }} />
-              </span>
-            </div>
-          </div>
-          <div className="time-column">
-            <strong>分</strong>
-            <div className="time-scroll-shell">
-              <div
-                className="time-scroll-list"
-                ref={minuteListRef}
-                onScroll={(event) => updateScrollbar("minute", event.currentTarget)}
-              >
-                {minutes.map((item) => (
-                  <button
-                    className={item === minute ? "is-selected" : ""}
-                    type="button"
-                    key={item}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => {
-                      updateTime(hour, item);
-                      setOpen(false);
-                    }}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-              <span className="time-scrollbar" aria-hidden="true">
-                <i style={{ height: scrollbars.minute.height, transform: `translateY(${scrollbars.minute.top}px)` }} />
-              </span>
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 function Toggle({ label, checked, onChange }) {
   return (
     <button
@@ -260,10 +101,6 @@ function FeatureIcon({ src, label }) {
 
 function InfoIcon({ src, label }) {
   return <img className="info-icon" src={src} alt="" aria-hidden="true" title={label} />;
-}
-
-function ControlIcon({ src, className = "" }) {
-  return <img className={`control-icon ${className}`.trim()} src={src} alt="" aria-hidden="true" />;
 }
 
 function LineIcon({ name }) {
@@ -551,6 +388,7 @@ export function App() {
   const [version, setVersion] = useState("0.1.0");
   const [resolvedTheme, setResolvedTheme] = useState("dark");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [recordsOpen, setRecordsOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [collapseEdge, setCollapseEdge] = useState("right");
@@ -666,8 +504,8 @@ export function App() {
     { image: featureHideMoneyIcon, label: "隐藏金额", onClick: () => patchConfig({ privacyMode: !config.privacyMode }) },
     { image: featureStatsIcon, label: "统计" },
     { image: featureGoalIcon, label: "目标" },
-    { image: featureRecordIcon, label: "记录" },
-    { image: featureSettingsIcon, label: "设置", onClick: () => setSettingsOpen(true) }
+    { image: featureRecordIcon, label: "记录", onClick: () => { setRecordsOpen(true); setSettingsOpen(false); } },
+    { image: featureSettingsIcon, label: "设置", onClick: () => { setSettingsOpen(true); setRecordsOpen(false); } }
   ];
 
   if (collapsed) {
@@ -802,7 +640,7 @@ export function App() {
         <div>
           {navItems.map((item) => (
             <button
-              className={item.label === "设置" || (item.label === "隐藏金额" && config.privacyMode) ? "is-active" : ""}
+              className={(item.label === "设置" && settingsOpen) || (item.label === "记录" && recordsOpen) || (item.label === "隐藏金额" && config.privacyMode) ? "is-active" : ""}
               type="button"
               key={item.label}
               onClick={item.onClick}
@@ -824,6 +662,13 @@ export function App() {
           onPatch={patchConfig}
           onCheckForUpdates={checkForUpdates}
           onInstallUpdate={installUpdate}
+        />
+      ) : null}
+      {recordsOpen ? (
+        <RecordsPanel
+          config={config}
+          privacyMode={config.privacyMode}
+          onClose={() => setRecordsOpen(false)}
         />
       ) : null}
     </main>
