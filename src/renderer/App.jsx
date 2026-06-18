@@ -20,6 +20,7 @@ import infoTodayEarnedIcon from "../assets/info-today-earned.png";
 import infoWeatherIcon from "../assets/info-weather.png";
 import { ControlIcon, CustomSelect, TimePicker } from "./controls.jsx";
 import { calculateWage, formatMoney, formatTime } from "./salary.js";
+import { GoalsPanel } from "./GoalsPanel.jsx";
 import { RecordsPanel } from "./RecordsPanel.jsx";
 
 const fallbackConfig = {
@@ -389,6 +390,7 @@ export function App() {
   const [resolvedTheme, setResolvedTheme] = useState("dark");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [recordsOpen, setRecordsOpen] = useState(false);
+  const [goalsOpen, setGoalsOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [collapseEdge, setCollapseEdge] = useState("right");
@@ -503,9 +505,9 @@ export function App() {
   const navItems = [
     { image: featureHideMoneyIcon, label: "隐藏金额", onClick: () => patchConfig({ privacyMode: !config.privacyMode }) },
     { image: featureStatsIcon, label: "统计" },
-    { image: featureGoalIcon, label: "目标" },
-    { image: featureRecordIcon, label: "记录", onClick: () => { setRecordsOpen(true); setSettingsOpen(false); } },
-    { image: featureSettingsIcon, label: "设置", onClick: () => { setSettingsOpen(true); setRecordsOpen(false); } }
+    { image: featureGoalIcon, label: "目标", onClick: () => { setGoalsOpen(true); setRecordsOpen(false); setSettingsOpen(false); } },
+    { image: featureRecordIcon, label: "记录", onClick: () => { setRecordsOpen(true); setGoalsOpen(false); setSettingsOpen(false); } },
+    { image: featureSettingsIcon, label: "设置", onClick: () => { setSettingsOpen(true); setGoalsOpen(false); setRecordsOpen(false); } }
   ];
 
   if (collapsed) {
@@ -640,7 +642,7 @@ export function App() {
         <div>
           {navItems.map((item) => (
             <button
-              className={(item.label === "设置" && settingsOpen) || (item.label === "记录" && recordsOpen) || (item.label === "隐藏金额" && config.privacyMode) ? "is-active" : ""}
+              className={(item.label === "设置" && settingsOpen) || (item.label === "记录" && recordsOpen) || (item.label === "目标" && goalsOpen) || (item.label === "隐藏金额" && config.privacyMode) ? "is-active" : ""}
               type="button"
               key={item.label}
               onClick={item.onClick}
@@ -662,6 +664,12 @@ export function App() {
           onPatch={patchConfig}
           onCheckForUpdates={checkForUpdates}
           onInstallUpdate={installUpdate}
+        />
+      ) : null}
+      {goalsOpen ? (
+        <GoalsPanel
+          privacyMode={config.privacyMode}
+          onClose={() => setGoalsOpen(false)}
         />
       ) : null}
       {recordsOpen ? (

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import controlCalendarIcon from "../assets/control-calendar.png";
 import controlCheckIcon from "../assets/control-check.png";
 import controlChevronDownIcon from "../assets/control-chevron-down.png";
@@ -7,8 +8,98 @@ export function ControlIcon({ src, className = "" }) {
   return <img className={`control-icon ${className}`.trim()} src={src} alt="" aria-hidden="true" />;
 }
 
+function useFloatingMenu(open, triggerRef, { align = "start", matchTriggerWidth = false, menuWidth = null } = {}) {
+  const menuRef = useRef(null);
+  const [style, setStyle] = useState({ visibility: "hidden" });
+
+  useLayoutEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    let frameId = 0;
+
+    function updatePosition() {
+      const trigger = triggerRef.current;
+      const menu = menuRef.current;
+      if (!trigger) {
+        return;
+      }
+
+      const triggerRect = trigger.getBoundingClientRect();
+      const resolvedWidth = matchTriggerWidth ? triggerRect.width : (menuWidth || menu?.offsetWidth || triggerRect.width);
+      const minGap = 8;
+      const rawLeft = align === "end" ? triggerRect.right - resolvedWidth : triggerRect.left;
+      const maxLeft = Math.max(minGap, window.innerWidth - resolvedWidth - minGap);
+      const left = Math.min(Math.max(minGap, rawLeft), maxLeft);
+
+      setStyle({
+        position: "fixed",
+        top: `${triggerRect.bottom + 6}px`,
+        left: `${left}px`,
+        width: matchTriggerWidth ? `${triggerRect.width}px` : undefined,
+        visibility: "visible"
+      });
+    }
+
+    function scheduleUpdate() {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(updatePosition);
+    }
+
+    updatePosition();
+    window.addEventListener("resize", scheduleUpdate);
+    window.addEventListener("scroll", scheduleUpdate, true);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", scheduleUpdate);
+      window.removeEventListener("scroll", scheduleUpdate, true);
+    };
+  }, [align, matchTriggerWidth, menuWidth, open, triggerRef]);
+
+  return { menuRef, style };
+}
+
+function useFloatingMenuDismiss(open, setOpen, triggerRef, menuRef) {
+  useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    function isInside(element, target) {
+      return element && target instanceof Node && element.contains(target);
+    }
+
+    function handlePointerDown(event) {
+      if (isInside(triggerRef.current, event.target) || isInside(menuRef.current, event.target)) {
+        return;
+      }
+
+      setOpen(false);
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuRef, open, setOpen, triggerRef]);
+}
+
 export function CustomSelect({ value, options, onChange, ariaLabel }) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef(null);
+  const menu = useFloatingMenu(open, triggerRef, { matchTriggerWidth: true });
+  useFloatingMenuDismiss(open, setOpen, triggerRef, menu.menuRef);
   const selected = options.find((option) => option.value === value) || options[0];
 
   return (
@@ -19,13 +110,14 @@ export function CustomSelect({ value, options, onChange, ariaLabel }) {
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
+        ref={triggerRef}
         onClick={() => setOpen((next) => !next)}
       >
         <span>{selected.label}</span>
         <ControlIcon src={controlChevronDownIcon} className="chevron-icon" />
       </button>
-      {open ? (
-        <div className="select-menu" role="listbox">
+      {open ? createPortal(
+        <div className="select-menu floating-menu" role="listbox" ref={menu.menuRef} style={menu.style}>
           {options.map((option) => (
             <button
               className={`select-option ${option.value === value ? "is-selected" : ""}`}
@@ -43,7 +135,8 @@ export function CustomSelect({ value, options, onChange, ariaLabel }) {
               {option.value === value ? <ControlIcon src={controlCheckIcon} className="check-icon" /> : null}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       ) : null}
     </div>
   );
@@ -90,6 +183,9 @@ function sameDate(value, year, month, day, type) {
 
 export function DatePicker({ type = "date", value, onChange, ariaLabel }) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef(null);
+  const menu = useFloatingMenu(open, triggerRef, { menuWidth: type === "month" ? 206 : 248 });
+  useFloatingMenuDismiss(open, setOpen, triggerRef, menu.menuRef);
   const [{ year, month }, setView] = useState(() => parseDateValue(value, type));
   const parsed = parseDateValue(value, type);
   const monthLabels = Array.from({ length: 12 }, (_, index) => index + 1);
@@ -119,13 +215,20 @@ export function DatePicker({ type = "date", value, onChange, ariaLabel }) {
         aria-label={ariaLabel}
         aria-haspopup="dialog"
         aria-expanded={open}
+        ref={triggerRef}
         onClick={() => setOpen((next) => !next)}
       >
         <span>{formatDateValue(value, type)}</span>
         <ControlIcon src={controlCalendarIcon} className="date-icon" />
       </button>
-      {open ? (
-        <div className={`date-menu ${type === "month" ? "month-menu" : ""}`} role="dialog" aria-label={ariaLabel}>
+      {open ? createPortal(
+        <div
+          className={`date-menu floating-menu ${type === "month" ? "month-menu" : ""}`}
+          role="dialog"
+          aria-label={ariaLabel}
+          ref={menu.menuRef}
+          style={menu.style}
+        >
           <div className="date-menu-head">
             <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => (type === "month" ? setView((current) => ({ ...current, year: current.year - 1 })) : moveMonth(-1))}>
               <span aria-hidden="true">&lt;</span>
@@ -178,7 +281,8 @@ export function DatePicker({ type = "date", value, onChange, ariaLabel }) {
               ))}
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       ) : null}
     </div>
   );
@@ -186,6 +290,9 @@ export function DatePicker({ type = "date", value, onChange, ariaLabel }) {
 
 export function TimePicker({ value, onChange, ariaLabel }) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef(null);
+  const menu = useFloatingMenu(open, triggerRef, { menuWidth: 176 });
+  useFloatingMenuDismiss(open, setOpen, triggerRef, menu.menuRef);
   const hourListRef = useRef(null);
   const minuteListRef = useRef(null);
   const [scrollbars, setScrollbars] = useState({
@@ -233,6 +340,7 @@ export function TimePicker({ value, onChange, ariaLabel }) {
         aria-label={ariaLabel}
         aria-haspopup="dialog"
         aria-expanded={open}
+        ref={triggerRef}
         onClick={() => setOpen((next) => !next)}
       >
         <span>{hour}</span>
@@ -240,8 +348,8 @@ export function TimePicker({ value, onChange, ariaLabel }) {
         <span>{minute}</span>
         <ControlIcon src={controlChevronDownIcon} className="chevron-icon" />
       </button>
-      {open ? (
-        <div className="time-menu" role="dialog" aria-label={ariaLabel}>
+      {open ? createPortal(
+        <div className="time-menu floating-menu" role="dialog" aria-label={ariaLabel} ref={menu.menuRef} style={menu.style}>
           <div className="time-column">
             <strong>HH</strong>
             <div className="time-scroll-shell">
@@ -295,7 +403,8 @@ export function TimePicker({ value, onChange, ariaLabel }) {
               </span>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       ) : null}
     </div>
   );

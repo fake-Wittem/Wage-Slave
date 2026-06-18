@@ -7,6 +7,18 @@ contextBridge.exposeInMainWorld("wageApp", {
   checkForUpdates: () => ipcRenderer.invoke("app:check-for-updates"),
   installUpdate: () => ipcRenderer.invoke("app:install-update"),
   getWeather: (city) => ipcRenderer.invoke("weather:get", city),
+  records: {
+    autoSaveToday: () => ipcRenderer.invoke("records:auto-save-today"),
+    listMonth: (periodKey) => ipcRenderer.invoke("records:list-month", periodKey),
+    get: (date) => ipcRenderer.invoke("records:get", date),
+    saveManual: (payload) => ipcRenderer.invoke("records:save-manual", payload),
+    exportMonth: (periodKey, format) => ipcRenderer.invoke("records:export-month", periodKey, format)
+  },
+  goals: {
+    getSummary: (periodKey) => ipcRenderer.invoke("goals:get-summary", periodKey),
+    save: (payload) => ipcRenderer.invoke("goals:save", payload),
+    reset: (periodKey) => ipcRenderer.invoke("goals:reset", periodKey)
+  },
   collapseWindow: (edge) => ipcRenderer.invoke("window:collapse", edge),
   expandWindow: (options) => ipcRenderer.invoke("window:expand", options),
   minimizeWindow: () => ipcRenderer.invoke("window:minimize"),

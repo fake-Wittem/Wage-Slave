@@ -4,6 +4,7 @@ const { execFile } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
+const { RecordsStore } = require("./records-store.js");
 
 const isDev = Boolean(process.env.VITE_DEV_SERVER_URL);
 const execFileAsync = promisify(execFile);
@@ -72,6 +73,8 @@ let updateState = {
 let updateCheckInFlight = false;
 let updateEventsBound = false;
 let quittingForUpdate = false;
+let recordsStore = null;
+let recordsAutoSaveTimer = null;
 
 function configPath() {
   return path.join(app.getPath("userData"), "config.json");
@@ -240,6 +243,25 @@ function installDownloadedUpdate() {
     status: "installing",
     message: "Restarting to install update..."
   });
+}
+
+async function autoSaveTodayRecord() {
+  if (!recordsStore) {
+    return null;
+  }
+
+  try {
+    return await recordsStore.autoSaveToday(config);
+  } catch (error) {
+    console.warn("Failed to auto-save today's wage record:", error?.message || error);
+    return null;
+  }
+}
+
+function scheduleRecordsAutoSave() {
+  clearInterval(recordsAutoSaveTimer);
+  autoSaveTodayRecord();
+  recordsAutoSaveTimer = setInterval(autoSaveTodayRecord, 60 * 1000);
 }
 
 function scheduleStartupUpdateCheck() {
@@ -889,6 +911,7 @@ ipcMain.handle("app:update-config", (_event, patch) => {
   config = { ...config, ...patch };
   saveConfig();
   applyWindowPreferences();
+  autoSaveTodayRecord();
   mainWindow?.webContents.send("config-updated", {
     config,
     resolvedTheme: getResolvedTheme()
@@ -898,6 +921,23 @@ ipcMain.handle("app:update-config", (_event, patch) => {
 });
 
 ipcMain.handle("weather:get", (_event, city) => getWeather(city));
+ipcMain.handle("records:auto-save-today", () => autoSaveTodayRecord());
+ipcMain.handle("records:list-month", (_event, periodKey) => recordsStore.listMonth(periodKey));
+ipcMain.handle("records:get", (_event, date) => recordsStore.getRecord(date));
+ipcMain.handle("records:save-manual", (_event, payload) => recordsStore.saveManualRecord(payload, config));
+ipcMain.handle("records:export-month", (_event, periodKey, format) => recordsStore.exportMonth(periodKey, format));
+ipcMain.handle("goals:get-summary", async (_event, periodKey) => {
+  await autoSaveTodayRecord();
+  return recordsStore.getGoalSummary(periodKey, config);
+});
+ipcMain.handle("goals:save", async (_event, payload) => {
+  await autoSaveTodayRecord();
+  return recordsStore.saveGoal(payload, config);
+});
+ipcMain.handle("goals:reset", async (_event, periodKey) => {
+  await autoSaveTodayRecord();
+  return recordsStore.resetGoal(periodKey, config);
+});
 ipcMain.handle("app:get-update-state", () => updateState);
 ipcMain.handle("app:check-for-updates", () => checkForUpdates());
 ipcMain.handle("app:install-update", () => installDownloadedUpdate());
@@ -922,6 +962,11 @@ app.whenReady().then(() => {
   app.setAppUserModelId("wage-slave");
   setupAutoUpdater();
   readConfig();
+  recordsStore = new RecordsStore(app.getPath("userData"));
+  recordsStore.init().catch((error) => {
+    console.warn("Failed to initialize records database:", error?.message || error);
+  });
+  scheduleRecordsAutoSave();
   createWindow();
   createTray();
   scheduleStartupUpdateCheck();
