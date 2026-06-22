@@ -938,6 +938,10 @@ ipcMain.handle("goals:reset", async (_event, periodKey) => {
   await autoSaveTodayRecord();
   return recordsStore.resetGoal(periodKey, config);
 });
+ipcMain.handle("stats:get-summary", async (_event, periodKey) => {
+  await autoSaveTodayRecord();
+  return recordsStore.getStatsSummary(periodKey, config);
+});
 ipcMain.handle("app:get-update-state", () => updateState);
 ipcMain.handle("app:check-for-updates", () => checkForUpdates());
 ipcMain.handle("app:install-update", () => installDownloadedUpdate());

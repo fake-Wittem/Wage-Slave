@@ -59,6 +59,26 @@ function workdaysInMonth(date, config) {
   return Math.max(1, count);
 }
 
+function remainingWorkdaysInPeriod(periodKey, config, now = new Date()) {
+  const date = periodDate(periodKey);
+  const key = monthKey(date);
+  const currentKey = monthKey(now);
+
+  if (key < currentKey) {
+    return 0;
+  }
+
+  let count = 0;
+  const startDay = key === currentKey ? now.getDate() + 1 : 1;
+  for (let day = startDay; day <= daysInMonth(date); day += 1) {
+    if (isWorkday(new Date(date.getFullYear(), date.getMonth(), day), config)) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
 function effectiveWorkMinutes(config) {
   const start = minutesFromTime(config.workStart);
   const end = minutesFromTime(config.workEnd);
@@ -213,6 +233,115 @@ function normalizeGoal(row, periodKey, config) {
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
+}
+
+function anomalyPeriodEndDay(periodKey, now = new Date()) {
+  const date = periodDate(periodKey);
+  const key = monthKey(date);
+  const currentKey = monthKey(now);
+
+  if (key > currentKey) {
+    return 0;
+  }
+
+  return key === currentKey ? now.getDate() : daysInMonth(date);
+}
+
+function buildDailySeries(periodKey, records, now = new Date()) {
+  const date = periodDate(periodKey);
+  const key = monthKey(date);
+  const currentKey = monthKey(now);
+
+  if (key > currentKey) {
+    return [];
+  }
+
+  const endDay = key === currentKey ? now.getDate() : daysInMonth(date);
+  const recordsByDate = new Map(records.map((record) => [record.date, record]));
+
+  return Array.from({ length: endDay }, (_item, index) => {
+    const day = index + 1;
+    const itemDate = new Date(date.getFullYear(), date.getMonth(), day);
+    const record = recordsByDate.get(dateKey(itemDate));
+    return {
+      date: dateKey(itemDate),
+      earnedAmount: Number(record?.earnedAmount) || 0,
+      workedMinutes: Number(record?.workedMinutes) || 0,
+      workdayType: record?.workdayType || null,
+      manualLock: Boolean(record?.manualLock)
+    };
+  });
+}
+
+function buildAnomalies(periodKey, records, config, now = new Date()) {
+  const date = periodDate(periodKey);
+  const recordsByDate = new Map(records.map((record) => [record.date, record]));
+  const anomalies = [];
+  const endDay = anomalyPeriodEndDay(periodKey, now);
+  const normalWorkMinutes = effectiveWorkMinutes(config);
+
+  for (let day = 1; day <= endDay; day += 1) {
+    const itemDate = new Date(date.getFullYear(), date.getMonth(), day);
+    const key = dateKey(itemDate);
+    const record = recordsByDate.get(key);
+    const plannedWorkday = isWorkday(itemDate, config);
+
+    if (plannedWorkday && !record) {
+      anomalies.push({
+        date: key,
+        type: "missing",
+        severity: "warning",
+        label: "工作日无记录"
+      });
+      continue;
+    }
+
+    if (!record) {
+      continue;
+    }
+
+    const workedMinutes = Number(record.workedMinutes) || 0;
+    const earnedAmount = Number(record.earnedAmount) || 0;
+    const nonWorkdayRecord = !plannedWorkday || ["rest", "holiday", "leave"].includes(record.workdayType);
+
+    if (nonWorkdayRecord && earnedAmount > 0) {
+      anomalies.push({
+        date: key,
+        type: "non_workday_income",
+        severity: "notice",
+        label: "非工作日存在收入"
+      });
+    }
+
+    if (plannedWorkday && workedMinutes === 0 && !["rest", "holiday", "leave"].includes(record.workdayType)) {
+      anomalies.push({
+        date: key,
+        type: "zero_hours",
+        severity: "warning",
+        label: "当日工时为 0"
+      });
+    }
+
+    if (workedMinutes > normalWorkMinutes * 1.25) {
+      anomalies.push({
+        date: key,
+        type: "long_hours",
+        severity: "warning",
+        label: "工时明显超出配置"
+      });
+    }
+
+    if (record.manualLock) {
+      anomalies.push({
+        date: key,
+        type: "manual",
+        severity: "info",
+        label: "手动修正记录"
+      });
+    }
+  }
+
+  return anomalies;
 }
 
 class RecordsStore {
@@ -568,6 +697,52 @@ class RecordsStore {
       },
       projectedIncome,
       status: goalStatus(amountProgress, expectedProgress)
+    };
+  }
+
+  async getStatsSummary(periodKey, config, now = new Date()) {
+    await this.init();
+    const key = String(periodKey || monthKey(now)).slice(0, 7);
+    const records = await this.listMonth(key);
+    const ascendingRecords = [...records].sort((a, b) => a.date.localeCompare(b.date));
+    const totals = ascendingRecords.reduce((sum, record) => ({
+      earnedAmount: sum.earnedAmount + (Number(record.earnedAmount) || 0),
+      workedMinutes: sum.workedMinutes + (Number(record.workedMinutes) || 0),
+      completedWorkdays: sum.completedWorkdays + ((Number(record.workedMinutes) || 0) > 0 ? 1 : 0)
+    }), {
+      earnedAmount: 0,
+      workedMinutes: 0,
+      completedWorkdays: 0
+    });
+    const activeDays = Math.max(1, ascendingRecords.filter((record) => (
+      (Number(record.workedMinutes) || 0) > 0 || (Number(record.earnedAmount) || 0) > 0
+    )).length);
+    const todayRecord = key === monthKey(now)
+      ? ascendingRecords.find((record) => record.date === dateKey(now))
+      : null;
+    const goalSummary = await this.getGoalSummary(key, config, now);
+    const dailySeries = buildDailySeries(key, ascendingRecords, now);
+
+    return {
+      periodKey: key,
+      records: ascendingRecords,
+      totals: {
+        earnedAmount: Number(totals.earnedAmount.toFixed(2)),
+        todayEarnedAmount: Number(todayRecord?.earnedAmount || 0),
+        workedMinutes: totals.workedMinutes,
+        completedWorkdays: totals.completedWorkdays,
+        remainingWorkdays: remainingWorkdaysInPeriod(key, config, now),
+        plannedWorkdays: workdaysInMonth(periodDate(key), config),
+        averageDailyAmount: Number((totals.earnedAmount / activeDays).toFixed(2)),
+        averageDailyMinutes: Math.round(totals.workedMinutes / activeDays)
+      },
+      goal: goalSummary.goal,
+      progress: goalSummary.progress,
+      projectedIncome: goalSummary.projectedIncome,
+      status: goalSummary.status,
+      dailySeries,
+      recentSeries: dailySeries.slice(-7),
+      anomalies: buildAnomalies(key, ascendingRecords, config, now)
     };
   }
 

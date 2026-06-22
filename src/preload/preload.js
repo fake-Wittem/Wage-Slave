@@ -19,6 +19,9 @@ contextBridge.exposeInMainWorld("wageApp", {
     save: (payload) => ipcRenderer.invoke("goals:save", payload),
     reset: (periodKey) => ipcRenderer.invoke("goals:reset", periodKey)
   },
+  stats: {
+    getSummary: (periodKey) => ipcRenderer.invoke("stats:get-summary", periodKey)
+  },
   collapseWindow: (edge) => ipcRenderer.invoke("window:collapse", edge),
   expandWindow: (options) => ipcRenderer.invoke("window:expand", options),
   minimizeWindow: () => ipcRenderer.invoke("window:minimize"),
